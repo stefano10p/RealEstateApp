@@ -1,5 +1,7 @@
+import javax.swing.*;
+import java.text.NumberFormat;
 import java.util.Arrays;
-
+import java.util.Random;
 /**
  * Class to handle computations.
  * User inputs will be taken from
@@ -36,12 +38,19 @@ public class BackEndCalculations {
     private double [] loanBalances;
     private double [] cumulativeTotalPayments; // cumulativePrincipalPayments + cumulative interestPayments
 
+    //Simulation members
+    private double simulatedMeanResalePrice;
+    private double [] simulatedMeanNetProfits; //array encoding the net Profit means --> one value for each time period
+    private String [] simulatedConfidenceIntervalNetProfit; //array encoding the 95th CI for Simulated NetProfit Values
+    private String [] simulatedProbabilityOfSuccess; //array encoding the probability of success for each time period
+
     private Amortization amortizationCalculator;
 
     private double [] cumulativeCapitalInvested; // this includes cumulative financing + cumu insurance
     // plus cum taxes plus cum Other + down payment amount + Capex
     private double [] netSale;
     private double [] netProfit;
+    private double [][] netProfitSimulationResults;
 
     private double sentinelValue = -1.0; // we assign this value in the userInputs array when an input is invalid
     private final int MAX_INTEREST_RATE = 50;
@@ -70,7 +79,6 @@ public class BackEndCalculations {
         inputErrors = ""; // we reset this to original state everytime it is called
         int numberOfInputs = stringUserInputs.length;
         for  (int i=0; i<numberOfInputs; i++){
-            System.out.println("Checking input index: " + i + " Value: " + stringUserInputs[i]);
             checkUserInput(stringUserInputs[i],i);
         }
     }
@@ -78,7 +86,7 @@ public class BackEndCalculations {
     /**
      * This method will set All private members to the
      * values passed by the users in the front end. This
-     * will occure only once the inputs have been fully
+     * will occur only once the inputs have been fully
      * validated
      */
     public void setAllInputs(){
@@ -122,7 +130,7 @@ public class BackEndCalculations {
         computeCumulativeExpenses();
         computeCumulativeCapitalInvested();
         computeNetSaleAndNetProfit();
-        System.out.println(Arrays.toString(this.netProfit));
+        performSimulation();
     }
 
     /**
@@ -173,6 +181,46 @@ public class BackEndCalculations {
             this.netProfit[i] = this.netSale[i] - this.cumulativeCapitalInvested[i];
         }
     }
+
+    /**
+     * This method will run our simulation and compute statistics of
+     * interest and store them to members of this class instance.
+     */
+    private void performSimulation(){
+        double [] simulatedResalePrices = new double [(int)this.numberSimulations];
+        Random randomGenerator = new Random();
+        double randomValue;
+        for (int i=0; i<this.numberSimulations; i++){
+            randomValue = randomGenerator.nextGaussian()
+                    * this.resalePriceSTD + this.resalePriceMean;
+            simulatedResalePrices[i] = randomValue;
+        }
+        this.netProfitSimulationResults = new double [this.totalNumberOfPayments][(int)this.numberSimulations];
+        double newNetSale; // new netSale value as a function of the simulated resale Price
+        double newNetProfit; // new netProfit as a function of the simulated resale Price
+
+        for (int j=0; j<this.totalNumberOfPayments; j++){
+            for (int k=0; k<this.numberSimulations; k++){
+                newNetSale = simulatedResalePrices[k] - this.loanBalances[j];
+                newNetProfit = newNetSale - this.cumulativeCapitalInvested[j];
+                this.netProfitSimulationResults[j][k]=newNetProfit;
+            }
+
+        }
+        this.simulatedMeanResalePrice = MathHelper.computeMean(simulatedResalePrices);
+        this.simulatedMeanNetProfits = new double [this.totalNumberOfPayments];
+        this.simulatedConfidenceIntervalNetProfit = new String [this.totalNumberOfPayments];
+        this.simulatedProbabilityOfSuccess = new String [this.totalNumberOfPayments];
+
+        for (int x=0; x<this.totalNumberOfPayments; x++){
+            double [] tempArray = this.netProfitSimulationResults[x];
+            this.simulatedMeanNetProfits[x] = MathHelper.computeMean(tempArray);
+            this.simulatedConfidenceIntervalNetProfit[x] = MathHelper.compute95CI(tempArray);
+            this.simulatedProbabilityOfSuccess[x] = MathHelper.computeProbabilityProjectSuccess(tempArray);
+        }
+
+    }
+
 
 
     /**
@@ -339,7 +387,6 @@ public class BackEndCalculations {
 
     }
 
-
     /**
      * Getter for input Errors
      * @return String UserInput errors
@@ -389,4 +436,33 @@ public class BackEndCalculations {
     public double getProjectedResalePrice(){
         return this.projectedResalePrice;
     }
+
+    /**
+     * Getter for simulatedMeanResalePrice
+     */
+    public double getSimulatedMeanResalePrice(){
+        return this.simulatedMeanResalePrice;
+    }
+
+    /**
+     * Getter for simulatedMeanNetProfits
+     */
+    public double [] getSimulatedMeanNetProfits(){
+        return this.simulatedMeanNetProfits;
+    }
+
+    /**
+     * Getter for simulatedConfidenceIntervalNetProfit
+     */
+    public String [] getSimulatedConfidenceIntervalNetProfit(){
+        return this.simulatedConfidenceIntervalNetProfit;
+    }
+
+    /**
+     * Getter for simulatedProbabilityOfSuccess
+     */
+    public String [] getSimulatedProbabilityOfSuccess(){
+        return this.simulatedProbabilityOfSuccess;
+    }
+
 }

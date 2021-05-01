@@ -11,7 +11,7 @@ import java.text.NumberFormat;
  * provide our program with the desired inputs
  */
 
-public class InputView extends JFrame {
+public class RealEstateFrontEnd extends JFrame {
     //JTextField Background Color
     public Color backgroundColor = new Color(174,224,255);
     public Color lightBackgroundColor = new Color(211,211,211);
@@ -63,6 +63,9 @@ public class InputView extends JFrame {
     public JLabel assumedProbabilityDistribution = new JLabel("Assumed Probability Distribution");
     public JTextField assumedProbabilityDistributionInput = new JTextField("Gaussian",15);
 
+    // Progress Bar
+    public JProgressBar progressBar = new JProgressBar();
+
     //submit Button
     public JButton runAnalysis = new JButton("Run Analysis!");
     public JButton clearInputs = new JButton("Clear Inputs");
@@ -89,7 +92,7 @@ public class InputView extends JFrame {
     /**
      * No arg constructor
      */
-    public InputView(){
+    public RealEstateFrontEnd(){
         this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         JTabbedPane tabs = new JTabbedPane();
         //JPanel simulationResultsPanel = new JPanel(new GridBagLayout());
@@ -236,8 +239,13 @@ public class InputView extends JFrame {
         inputPanel.add(loadSampleInputs,c);
         c.gridx=0;c.gridy=16;c.gridwidth=6;
         inputPanel.add(runAnalysis,c);
-
-
+        //add progress bar
+        c.insets = new Insets(20,10,0,10);
+        c.gridx=0;c.gridy=17;c.gridwidth=6;
+        c.weightx=1.0;
+        progressBar.setValue(0);
+        progressBar.setStringPainted(true);
+        //inputPanel.add(progressBar,c);
 
         // add listeners on each button
         InputListener inputListener = new InputListener();
@@ -256,8 +264,8 @@ public class InputView extends JFrame {
 
         // set up the simulationResults view
         modelSimulation.addColumn("Time Period"); modelSimulation.addColumn("Mean Resale Price");
-        modelSimulation.addColumn("Mean Net Profit"); modelSimulation.addColumn("5th Percentile Net Profit");
-        modelSimulation.addColumn("95th Percentile Net Profit");
+        modelSimulation.addColumn("Mean Net Profit"); modelSimulation.addColumn("95% CI");
+        modelSimulation.addColumn("Probability Of Success");
         simulationResultsPanel.add(simulationResultsMessage,BorderLayout.PAGE_START);
         simulationResultsPanel.add(scrollPaneSimulation,BorderLayout.CENTER);
 
@@ -282,11 +290,18 @@ public class InputView extends JFrame {
                     backEndCalculations.performAnalysis();
                     addDataToResultsTable();
                     resultsMessage.setText("Analysis COMPLETE!");
-                    // TO DO: PERFORM SIMULATION ANALUSIS
-                    // ADD RESULTS TO SIMUALTION RESULTS TABLE
+                    addDataToSimulationResultsTable();
+                    simulationResultsMessage.setText("Simulation Analysis COMPLETE!");
+                    JOptionPane.showMessageDialog(null, "Analysis Complete!" +
+                            " \nPlease visit the Results and Simulation Results tab to " +
+                            "inspect the output.");
+
+                    //TEST CODE
+                    //progressBar.setMinimum(0);progressBar.setMaximum(100);
 
                 } else {
                     System.out.println("we have errors: " + inputErrors);
+                    JOptionPane.showMessageDialog(null, inputErrors);
                     // pop up showing a detailed description of erros that
                     // need to be corrected
                 }
@@ -326,7 +341,8 @@ public class InputView extends JFrame {
     }
 
     /**
-     * Helper method to load sample inputs
+     * Helper method to load sample inputs for users to
+     * gain familiarity with tool
      */
     private void loadSampleInputs(){
         clearUserInputsAndOutput();
@@ -371,9 +387,9 @@ public class InputView extends JFrame {
         // first we work out where the negative values start
         int numberOfPeriods = this.backEndCalculations.getTotalNumberOfPayments();
         int stopIndex = numberOfPeriods;
-        double [] netProft = this.backEndCalculations.getNetProfit();
+        double [] netProfit = this.backEndCalculations.getNetProfit();
         for (int i=0; i< numberOfPeriods;i++){
-            if (netProft[i]<0){
+            if (netProfit[i]<0){
                 stopIndex = i;
                 break;
             }
@@ -390,7 +406,6 @@ public class InputView extends JFrame {
         double [] financingBalance = this.backEndCalculations.getLoanBalances();
         double [] cumulativeCapex = this.backEndCalculations.getCumulativeCapitalInvested();
         double [] netSale = this.backEndCalculations.getNetSale();
-        double [] netProfit = this.backEndCalculations.getNetProfit();
 
         NumberFormat formatter = NumberFormat.getCurrencyInstance();
 
@@ -405,6 +420,50 @@ public class InputView extends JFrame {
             });
         }
     }
+
+
+    /**
+     * Helper method to add rows to our SimulationsResults JTable.
+     * It is not necessary to show results for all time periods.
+     * Only the time periods where the Mean Net Profit is >0 are relevant
+     * and as such we only display those to the user.
+     */
+    private void addDataToSimulationResultsTable(){
+        // first we work out where the negative values start
+        int numberOfPeriods = this.backEndCalculations.getTotalNumberOfPayments();
+        int stopIndex = numberOfPeriods;
+        double [] meanSimulatedNetProfit = this.backEndCalculations.getSimulatedMeanNetProfits();
+        for (int i=0; i< numberOfPeriods;i++){
+            if (meanSimulatedNetProfit[i]<0){
+                stopIndex = i;
+                break;
+            }
+        }
+        System.out.println("STOPINDEX found at:" + stopIndex);
+
+        // we want to delete results from previous runs first
+        int numberOfRows = modelSimulation.getRowCount();
+        if (numberOfRows >0){
+            for (int k=numberOfRows-1; k>=0; k--) modelSimulation.removeRow(k);
+        }
+
+        double meanSimulatedResalePrice = this.backEndCalculations.getSimulatedMeanResalePrice();
+        String [] simulatedCIIntervalNetProfit = this.backEndCalculations.getSimulatedConfidenceIntervalNetProfit();
+        String [] simulatedProbabilityProjectSuccess = this.backEndCalculations.getSimulatedProbabilityOfSuccess();
+
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+
+        for (int j =0; j<stopIndex; j++){
+            this.modelSimulation.addRow(new Object [] {
+                    j+1,
+                    formatter.format(meanSimulatedResalePrice),
+                    formatter.format(meanSimulatedNetProfit[j]),
+                    simulatedCIIntervalNetProfit[j],
+                    simulatedProbabilityProjectSuccess[j]
+            });
+        }
+    }
+
 
     public String[] getStringUserInputs() {
         return stringUserInputs;

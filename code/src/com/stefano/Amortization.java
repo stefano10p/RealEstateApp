@@ -49,7 +49,6 @@ public class Amortization {
         double denominator = Math.pow(1+this.loanInterestRatePerPeriod,this.totalNumberOfPayments) -1;
         double result = this.loanAmount * (numerator/denominator);
         this.monthlyPayment = result;
-        System.out.println("Monthly Payment is: " + result);
     }
 
     /**
@@ -89,8 +88,6 @@ public class Amortization {
 
             this.cumulativeTotalPayments[i] = this.cumulativeInterestPayments[i]
                     + this.cumulativePrincipalPayments[i];
-            //System.out.println(cumulativePrincipalPayments[i] + " "  +cumulativeInterestPayments[i] + " "
-            //        +  " "  +cumulativeTotalPayments[i] + " "  + i);
         }
 
     }
