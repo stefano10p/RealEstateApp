@@ -1,4 +1,4 @@
-import javax.swing.*;
+
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Random;
@@ -11,13 +11,7 @@ import java.util.Random;
  */
 
 public class BackEndCalculations {
-    private double purchasePrice;
     private double projectedResalePrice;
-    private double downPaymentPercent;
-    private double downPaymentAmount;
-    private double projectedCapitalExpenditure;
-    private double projectedCapitalExpenditureDownPaymentPercentage;
-    private double projectedCapitalExpenditureDownPaymentAmount;
     private double loanAmount;
     private double loanInterestRate;
     private double loanDuration;
@@ -30,44 +24,36 @@ public class BackEndCalculations {
     private double numberSimulations;
     private double initialInvestmentAmount;
     private int totalNumberOfPayments;
-
     private double [] cumulativeTaxPayments;
     private double [] cumulativeInsurancePayments;
     private double [] cumulativeOtherPayments;
-
     private double [] loanBalances;
-    private double [] cumulativeTotalPayments; // cumulativePrincipalPayments + cumulative interestPayments
-
     //Simulation members
     private double simulatedMeanResalePrice;
     private double [] simulatedMeanNetProfits; //array encoding the net Profit means --> one value for each time period
     private String [] simulatedConfidenceIntervalNetProfit; //array encoding the 95th CI for Simulated NetProfit Values
     private String [] simulatedProbabilityOfSuccess; //array encoding the probability of success for each time period
-
-    private Amortization amortizationCalculator;
-
     private double [] cumulativeCapitalInvested; // this includes cumulative financing + cumu insurance
     // plus cum taxes plus cum Other + down payment amount + Capex
     private double [] netSale;
     private double [] netProfit;
-    private double [][] netProfitSimulationResults;
-
-    private double sentinelValue = -1.0; // we assign this value in the userInputs array when an input is invalid
-    private final int MAX_INTEREST_RATE = 50;
-    private final int MAX_LOAN_DURATION = 50;
-    private final int MIN_LOAN_DURATION = 5;
-    private final int MAX_NUMB_LOAN_PAYMENTS = 50;
-    private final int MIN_NUMB_LOAN_PAYMENTS = 12;
-    private final int MIN_NUMBER_SIMULATIONS = 100;
-    private final int MAX_NUMBER_SIMULATIONS = 1_000_000;
+    private static final double sentinelValue = -1.0; // we assign this value in the userInputs array when an input is invalid
+    private  static final int MAX_INTEREST_RATE = 50;
+    private  static final int MAX_LOAN_DURATION = 50;
+    private  static final int MIN_LOAN_DURATION = 5;
+    private  static final int MAX_NUMB_LOAN_PAYMENTS = 50;
+    private  static final int MIN_NUMB_LOAN_PAYMENTS = 12;
+    private  static final int MIN_NUMBER_SIMULATIONS = 100;
+    private  static final int MAX_NUMBER_SIMULATIONS = 1_000_000;
     private String inputErrors = "";
-    private double userInputs [] = new double[14];
+    private double userInputs [] = new double[15];
     private String userInputsNames [] = {"Purchase Price","Projected Resale Price",
-            "Down Payment","Projected Capital Expenditure",
+            "Down Payment","Other Costs At Closing ($)",
+            "Projected Capital Expenditure","PCE Down Payment %",
             "Loan Interest Rate","Loan Duration","# of Loan Payments",
             "Monthly Real Estate Taxes","Monthly Insurance Costs",
             "Other Monthly Expenses","Resale Price Mean",
-            "Resale Price Standard Deviation","Number of Simulations","PCE Down Payment %"};
+            "Resale Price Standard Deviation","Number of Simulations"};
 
 
     /**
@@ -76,10 +62,10 @@ public class BackEndCalculations {
      * set inputs to a dat structure we can use for analysis
      */
     public void feedStringUserInputs( String [] stringUserInputs){
-        inputErrors = ""; // we reset this to original state everytime it is called
+        inputErrors = ""; // we reset this to original state every time it is called
         int numberOfInputs = stringUserInputs.length;
-        for  (int i=0; i<numberOfInputs; i++){
-            checkUserInput(stringUserInputs[i],i);
+        for  (int i=0; i<=numberOfInputs-1; i++){
+            checkAndSetUserInputs(stringUserInputs[i],i);
         }
     }
 
@@ -90,21 +76,22 @@ public class BackEndCalculations {
      * validated
      */
     public void setAllInputs(){
-        this.purchasePrice = this.userInputs[0];
+        double purchasePrice = this.userInputs[0];
         this.projectedResalePrice = this.userInputs[1];
-        this.downPaymentPercent = this.userInputs[2];
-        this.downPaymentAmount = this.downPaymentPercent/100 * this.purchasePrice;
-        this.projectedCapitalExpenditure = this.userInputs[3];
-        this.loanInterestRate = this.userInputs[4];
-        this.loanDuration = this.userInputs[5];
-        this.numberLoanPaymentsPerYear = this.userInputs[6];
-        this.monthlyRealEstateTaxes = this.userInputs[7];
-        this.monthlyInsuranceCosts = this.userInputs[8];
-        this.otherMonthlyExpenses = this.userInputs[9];
-        this.resalePriceMean = this.userInputs[10];
-        this.resalePriceSTD = this.userInputs[11];
-        this.numberSimulations = this.userInputs[12];
-        this.projectedCapitalExpenditureDownPaymentPercentage = this.userInputs[13];
+        double downPaymentPercent = this.userInputs[2];
+        double downPaymentAmount = downPaymentPercent/100 * purchasePrice;
+        double otherClosingCosts = this.userInputs[3];
+        double projectedCapitalExpenditure = this.userInputs[4];
+        double projectedCapitalExpenditureDownPaymentPercentage = this.userInputs[5];
+        this.loanInterestRate = this.userInputs[6];
+        this.loanDuration = this.userInputs[7];
+        this.numberLoanPaymentsPerYear = this.userInputs[8];
+        this.monthlyRealEstateTaxes = this.userInputs[9];
+        this.monthlyInsuranceCosts = this.userInputs[10];
+        this.otherMonthlyExpenses = this.userInputs[11];
+        this.resalePriceMean = this.userInputs[12];
+        this.resalePriceSTD = this.userInputs[13];
+        this.numberSimulations = this.userInputs[14];
         this.totalNumberOfPayments =(int)(this.numberLoanPaymentsPerYear * this.loanDuration);
         this.cumulativeTaxPayments = new double [this.totalNumberOfPayments];
         this.cumulativeOtherPayments = new double [this.totalNumberOfPayments];
@@ -113,13 +100,14 @@ public class BackEndCalculations {
         this.netSale = new double [this.totalNumberOfPayments];
         this.netProfit = new double [this.totalNumberOfPayments];
 
-        this.projectedCapitalExpenditureDownPaymentAmount = this.projectedCapitalExpenditureDownPaymentPercentage/100
-                * this.projectedCapitalExpenditure;
+        double projectedCapitalExpenditureDownPaymentAmount = projectedCapitalExpenditureDownPaymentPercentage/100
+                * projectedCapitalExpenditure;
 
-        this.loanAmount = (this.purchasePrice + this.projectedCapitalExpenditure)
-                - (this.downPaymentAmount + this.projectedCapitalExpenditureDownPaymentAmount);
-        this.initialInvestmentAmount = this.downPaymentAmount
-                + this.projectedCapitalExpenditureDownPaymentAmount;
+        this.loanAmount = (purchasePrice + projectedCapitalExpenditure)
+                - (downPaymentAmount + projectedCapitalExpenditureDownPaymentAmount);
+        this.initialInvestmentAmount = downPaymentAmount
+                + otherClosingCosts
+                + projectedCapitalExpenditureDownPaymentAmount;
     }
 
     /**
@@ -154,15 +142,15 @@ public class BackEndCalculations {
      */
 
     private void computeCumulativeCapitalInvested(){
-        this.amortizationCalculator = new Amortization(this.loanAmount,this.loanDuration,
+        Amortization amortizationCalculator = new Amortization(this.loanAmount,this.loanDuration,
                 this.numberLoanPaymentsPerYear,this.loanInterestRate);
-        this.amortizationCalculator.calculateAmortizationSchedule();
-        this.loanBalances = this.amortizationCalculator.getLoanBalances();
-        this.cumulativeTotalPayments = this.amortizationCalculator.getCumulativeTotalPayments();
+        amortizationCalculator.calculateAmortizationSchedule();
+        this.loanBalances = amortizationCalculator.getLoanBalances();
+        double [] cumulativeTotalPayments = amortizationCalculator.getCumulativeTotalPayments();
 
         for (int i=0; i<this.totalNumberOfPayments; i++){
             this.cumulativeCapitalInvested[i] = this.initialInvestmentAmount
-                    + this.cumulativeTotalPayments[i]
+                    + cumulativeTotalPayments[i]
                     + this.cumulativeTaxPayments[i]
                     + this.cumulativeInsurancePayments[i]
                     + this.cumulativeOtherPayments[i];
@@ -195,7 +183,7 @@ public class BackEndCalculations {
                     * this.resalePriceSTD + this.resalePriceMean;
             simulatedResalePrices[i] = randomValue;
         }
-        this.netProfitSimulationResults = new double [this.totalNumberOfPayments][(int)this.numberSimulations];
+        double [] [] netProfitSimulationResults = new double [this.totalNumberOfPayments][(int)this.numberSimulations];
         double newNetSale; // new netSale value as a function of the simulated resale Price
         double newNetProfit; // new netProfit as a function of the simulated resale Price
 
@@ -203,7 +191,7 @@ public class BackEndCalculations {
             for (int k=0; k<this.numberSimulations; k++){
                 newNetSale = simulatedResalePrices[k] - this.loanBalances[j];
                 newNetProfit = newNetSale - this.cumulativeCapitalInvested[j];
-                this.netProfitSimulationResults[j][k]=newNetProfit;
+                netProfitSimulationResults[j][k]=newNetProfit;
             }
 
         }
@@ -213,7 +201,7 @@ public class BackEndCalculations {
         this.simulatedProbabilityOfSuccess = new String [this.totalNumberOfPayments];
 
         for (int x=0; x<this.totalNumberOfPayments; x++){
-            double [] tempArray = this.netProfitSimulationResults[x];
+            double [] tempArray = netProfitSimulationResults[x];
             this.simulatedMeanNetProfits[x] = MathHelper.computeMean(tempArray);
             this.simulatedConfidenceIntervalNetProfit[x] = MathHelper.compute95CI(tempArray);
             this.simulatedProbabilityOfSuccess[x] = MathHelper.computeProbabilityProjectSuccess(tempArray);
@@ -224,14 +212,14 @@ public class BackEndCalculations {
 
 
     /**
-     * Helper method to check a user provided input. Each index corresponds to a
+     * Method to check a user provided input. Each index corresponds to a
      * pre-defined input. Each input has it's own logic that we must
-     * check
+     * check. This method will check and set the userInput instance variable
      * @param input
      * @param index
      */
 
-    private void checkUserInput(String input, int index){
+    private void checkAndSetUserInputs(String input, int index){
         input = input.replaceAll(",","");
         boolean passNumericTest = false;
         double value;
@@ -255,6 +243,7 @@ public class BackEndCalculations {
             // now we check for conditions specific to each input
             if (index==1){
                 if (this.userInputs[0]==this.sentinelValue){
+                    // checking Projected Resale Price input
                     // Purchase Price is not valid. We can't determine
                     // if Projected Resale Price is Valid. Analysis
                     // only makes sense if Resale Price is > purchase Price
@@ -268,12 +257,33 @@ public class BackEndCalculations {
                     }
                 }
             } else if (index ==2){
+                // checking Down Payment Percentage input
                 if (this.userInputs[index]>100){
                     this.inputErrors += this.userInputsNames[index]
                             +" should be <=100%\n";
                 }
 
-            } else if (index==3){
+            } else if(index==3){
+                // checking Other costs at closing input. Closing costs plus purchase price
+                // should be less than projected resale price
+                if (this.userInputs[0]==this.sentinelValue) {
+                    this.inputErrors += "Unable to confirm validity of input: "
+                            + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
+                            + " is invalid\n";
+                } else if (this.userInputs[1]==this.sentinelValue){
+                    this.inputErrors += "Unable to confirm validity of input: "
+                            + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
+                            + " is invalid\n";
+                } else {
+                    if (this.userInputs[index] + this.userInputs[0] > this.userInputs[1]){
+                        this.inputErrors += this.userInputsNames[index] + " plus "
+                                + this.userInputsNames[0] + " should be < than: "
+                                + this.userInputsNames[1]+"\n";
+                    }
+                }
+
+            } else if (index==4){
+                // checking PCE input
                 // PCE + Purchase Price should be < resale price
                 if (this.userInputs[0]==this.sentinelValue) {
                     this.inputErrors += "Unable to confirm validity of input: "
@@ -285,18 +295,40 @@ public class BackEndCalculations {
                             + " is invalid\n";
                 } else {
                     if (this.userInputs[index] + this.userInputs[0] > this.userInputs[1]){
-                        this.inputErrors += this.userInputsNames[index]
+                        this.inputErrors += this.userInputsNames[index] + " plus "
                                 + this.userInputsNames[0] + " should be < than: "
                                 + this.userInputsNames[1]+"\n";
                     }
                 }
-            } else if (index ==4){
+
+            } else if(index==5){
+                //checking PCE Down Payment %
+                if (this.userInputs[0]==this.sentinelValue) {
+                    this.inputErrors += "Unable to confirm validity of input: "
+                            + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
+                            + " is invalid\n";
+                } else if (this.userInputs[1]==this.sentinelValue){
+                    this.inputErrors += "Unable to confirm validity of input: "
+                            + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
+                            + " is invalid\n";
+                } else if (this.userInputs[3] + this.userInputs[0] > this.userInputs[1]) {
+                    this.inputErrors += this.userInputsNames[3]
+                            + this.userInputsNames[0] + " should be < than: "
+                            + this.userInputsNames[1]+ " therefore this input is invalid\n";
+
+                } else if (this.userInputs[index]>100){
+                    this.inputErrors += this.userInputsNames[index]
+                            +" should be <=100%\n";
+                }
+
+            } else if (index ==6){
+                // checking loan interest rate
                 if (this.userInputs[index] > MAX_INTEREST_RATE){
                     this.inputErrors += this.userInputsNames[index]
                             + " is unreasonably high. Please select a reasonable interest rate: "
                             + "< than " + MAX_INTEREST_RATE + "\n";
                 }
-            } else if (index == 5){
+            } else if (index == 7){
                 if (this.userInputs[index] > MAX_LOAN_DURATION || this.userInputs[index] < MIN_LOAN_DURATION){
                     this.inputErrors += this.userInputsNames[index]
                             + " should be > " + MIN_LOAN_DURATION
@@ -306,7 +338,7 @@ public class BackEndCalculations {
                             + " should be an integer value. We only consider loans"
                             + " issued in full year increments\n";
                 }
-            } else if (index==6){
+            } else if (index==8){
                 if (this.userInputs[index]>MAX_NUMB_LOAN_PAYMENTS || this.userInputs[index]<MIN_NUMB_LOAN_PAYMENTS){
                     this.inputErrors += this.userInputsNames[index]
                             + " should be > " + MAX_LOAN_DURATION
@@ -316,7 +348,7 @@ public class BackEndCalculations {
                             + " should be an integer value. We only consider payment"
                             + " frequencies that increment by whole numbers\n";
                 }
-            } else if (index==7 || index ==8 || index ==9){
+            } else if (index==9 || index ==10 || index ==11){
                 if (this.userInputs[0]==this.sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
@@ -332,7 +364,7 @@ public class BackEndCalculations {
                                 + " Please input different assumptions for a meaningful analysis\n";
                     }
                 }
-            } else if (index==11){
+            } else if (index==13){
                 if (this.userInputs[0]==this.sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
@@ -347,7 +379,7 @@ public class BackEndCalculations {
                             + " is invalid\n";
 
                 } else {
-                    double maxVal = this.userInputs[10] + this.userInputs[index]*3;
+                    double maxVal = this.userInputs[12] + this.userInputs[index]*3;
                     if (maxVal<this.userInputs[0]) {
                         this.inputErrors += this.userInputsNames[index]
                                 + "and/or " + this.userInputsNames[10]
@@ -355,7 +387,7 @@ public class BackEndCalculations {
                                 + " Please input different assumptions for a meaningful analysis\n";
                     }
                 }
-            } else if (index==12){
+            } else if (index==14){
                 if (this.userInputs[index]>MAX_NUMBER_SIMULATIONS || this.userInputs[index]<MIN_NUMBER_SIMULATIONS){
                     this.inputErrors += this.userInputsNames[index]
                             + " should be > " + MIN_NUMBER_SIMULATIONS + " and"
@@ -363,24 +395,6 @@ public class BackEndCalculations {
                 } else if (this.userInputs[index] % 1 !=0){
                     this.inputErrors += this.userInputsNames[index]
                             + " should be an integer value.\n";
-                }
-            } else if (index==13){
-                if (this.userInputs[0]==this.sentinelValue) {
-                    this.inputErrors += "Unable to confirm validity of input: "
-                            + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
-                            + " is invalid\n";
-                } else if (this.userInputs[1]==this.sentinelValue){
-                    this.inputErrors += "Unable to confirm validity of input: "
-                            + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
-                            + " is invalid\n";
-                } else if (this.userInputs[3] + this.userInputs[0] > this.userInputs[1]) {
-                    this.inputErrors += this.userInputsNames[3]
-                                + this.userInputsNames[0] + " should be < than: "
-                                + this.userInputsNames[1]+ " therefore this input is invalid\n";
-
-                } else if (this.userInputs[index]>100){
-                    this.inputErrors += this.userInputsNames[index]
-                            +" should be <=100%\n";
                 }
             }
         }
