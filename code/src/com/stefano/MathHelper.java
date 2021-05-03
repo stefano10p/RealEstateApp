@@ -1,18 +1,20 @@
-import java.text.NumberFormat;
-import java.util.Arrays;
-
 /**
  * This class contains a number of static methods
  * that will allow us to perform statistical
- * calculations on arrays
+ * calculations on arrays holding net profit values
+ * from out simulations.
+ * @author Stefano Parravano
  */
+
+import java.text.NumberFormat;
+import java.util.Arrays;
 
 public class MathHelper {
 
     /**
      * Method to compute mean of an array
-     * @param inputArray
-     * @return double the mean of thee array
+     * @param inputArray holding all net profit outcomes for a given time period
+     * @return the mean net profit value
      */
     public static double computeMean( double [] inputArray){
 
@@ -25,8 +27,8 @@ public class MathHelper {
 
     /**
      * Method to compute standard deviations of values in an array
-     * @param inputArray
-     * @return double the standard deviation
+     * @param inputArray holding all net profit outcomes for a given time period
+     * @return the standard deviation of our net profit values
      */
     public static double computeStandardDeviation(double [] inputArray){
         double mean = MathHelper.computeMean(inputArray);
@@ -41,8 +43,8 @@ public class MathHelper {
 
     /**
      * Method to compute 95% CI of an array.
-     * @oaram inputArray
-     * @return String Indicating upper and lower bound of 95% CI
+     * @oaram inputArray holding all net profit outcomes for a given time period
+     * @return formatted tring encoding upper and lower bound of 95% CI of our net profit values
      */
     public static String compute95CI( double [] inputArray){
         double [] inputArrayClone = inputArray.clone();
@@ -60,8 +62,9 @@ public class MathHelper {
 
     /**
      * Method to compute probability of Project Success
-     * for a given Time Period
-     * @param inputArray
+     * for a given Time Period. A success is defined as an outcome
+     * in which the net profit > 0. P(Success) = # of net profit >0 / total trials.
+     * @param inputArray holding all net profit outcomes for a given time period
      * @return Formatted string encoding probability of project Success
      */
     public static String computeProbabilityProjectSuccess( double [] inputArray){

@@ -1,14 +1,16 @@
+/**
+ * Class to handle computations.
+ * User inputs will be taken from
+ * Front end, results will be computed and
+ * sent back to the front end. The RealEstateFrontEnd class
+ * will then handle the displaying of the results and this class
+ * will handle all computations ("Business-Logic").
+ * @author Stefano Parravano
+ */
 
 import java.text.NumberFormat;
 import java.util.Arrays;
 import java.util.Random;
-/**
- * Class to handle computations.
- * User inputs will be taken from
- * InputView, results will be computed and
- * sent back to the front end. The InputView Front end
- * will then handle the displaying of the results.
- */
 
 public class BackEndCalculations {
     private double projectedResalePrice;
@@ -59,7 +61,8 @@ public class BackEndCalculations {
     /**
      * Method to receive text inputs as passed
      * by user in Front end, check for validity and
-     * set inputs to a dat structure we can use for analysis
+     * set inputs to a dats structure (the this.userInputs array)
+     * we can use for analysis
      */
     public void feedStringUserInputs( String [] stringUserInputs){
         inputErrors = ""; // we reset this to original state every time it is called
@@ -123,7 +126,9 @@ public class BackEndCalculations {
 
     /**
      * This method will compute cumulative Taxes,Insurance and Other
-     * expenses
+     * expenses for each time period adn store the results to the
+     * appropriate private members: cumulativeTaxPayments,cumulativeOtherPayments
+     * cumulativeInsurancePayments.
      */
     private void computeCumulativeExpenses(){
         for (int i = 1; i<= this.totalNumberOfPayments; i++){
@@ -136,8 +141,11 @@ public class BackEndCalculations {
 
     /**
      * This method will compute the cumulative Capital Invested.
-     * The amortization schedule will get computed and expenses from the
-     * computeCumulativeExpenses method will be added
+     * The amortization schedule will also get computed and expenses from the
+     * computeCumulativeExpenses method will be added to the total out
+     * of pocket cumulative laon payments (principal + interest). The results
+     * will be stored to the appropriate private members: cumulativeTotalPayments
+     * cumulativeCapitalInvested
      *
      */
 
@@ -159,8 +167,9 @@ public class BackEndCalculations {
     }
 
     /**
-     * This method will compute the netSale and netProfit
-     * values for each Period.
+     * This helper method will compute the netSale and netProfit
+     * values for each Period and store them to the appropriate private
+     * members: netSale and netProfit.
      */
 
     private void computeNetSaleAndNetProfit(){
@@ -172,7 +181,14 @@ public class BackEndCalculations {
 
     /**
      * This method will run our simulation and compute statistics of
-     * interest and store them to members of this class instance.
+     * interest and store them to the appropriate private members
+     * (simulatedMeanNetProfits,simulatedConfidenceIntervalNetProfit,simulatedProbabilityOfSuccess).
+     * A distribution of resale values will be computed based on the parameters
+     * set by the front end user. This distribution will be used to create
+     * a distribution of possible outcomes for each time period. The distribution
+     * of outcomes will be used to show a 95% CI of possible future states
+     * as well as the probability of success (defined as net profit >0) for
+     * each future time period.
      */
     private void performSimulation(){
         double [] simulatedResalePrices = new double [(int)this.numberSimulations];
@@ -214,9 +230,10 @@ public class BackEndCalculations {
     /**
      * Method to check a user provided input. Each index corresponds to a
      * pre-defined input. Each input has it's own logic that we must
-     * check. This method will check and set the userInput instance variable
-     * @param input
-     * @param index
+     * check. This method will check and set the values in the
+     * userInput instance variable
+     * @param input passed from user
+     * @param index location of input in userInput array
      */
 
     private void checkAndSetUserInputs(String input, int index){
@@ -418,6 +435,8 @@ public class BackEndCalculations {
 
     /**
      * Getter for netProfit per period array
+     * @return double [] array of net profit results for
+     *                  each period
      */
     public double [] getNetProfit(){
         return this.netProfit;
@@ -425,6 +444,7 @@ public class BackEndCalculations {
 
     /**
      * Getter for loanBalances per period array
+     * @return double [] array of loan balances for each period
      */
     public double [] getLoanBalances (){
         return this.loanBalances;
@@ -432,6 +452,8 @@ public class BackEndCalculations {
 
     /**
      * Getter for cumulativeCapitalInvested per period array
+     * @ return double [] array of cumulative capital invested
+     *                  for each period
      */
     public double [] getCumulativeCapitalInvested (){
         return this.cumulativeCapitalInvested;
@@ -439,6 +461,7 @@ public class BackEndCalculations {
 
     /**
      * Getter for totalNumberOfPayments
+     * @return total payments over course of financing period
      */
     public int getTotalNumberOfPayments(){
         return this.totalNumberOfPayments;
@@ -446,6 +469,7 @@ public class BackEndCalculations {
 
     /**
      * Getter for projectedResalePrice
+     * @return projected resale price
      */
     public double getProjectedResalePrice(){
         return this.projectedResalePrice;
@@ -453,6 +477,7 @@ public class BackEndCalculations {
 
     /**
      * Getter for simulatedMeanResalePrice
+     * @return mean resale price from simulated distribution
      */
     public double getSimulatedMeanResalePrice(){
         return this.simulatedMeanResalePrice;
@@ -460,6 +485,7 @@ public class BackEndCalculations {
 
     /**
      * Getter for simulatedMeanNetProfits
+     * @return mean net profits from simulation
      */
     public double [] getSimulatedMeanNetProfits(){
         return this.simulatedMeanNetProfits;
@@ -467,6 +493,8 @@ public class BackEndCalculations {
 
     /**
      * Getter for simulatedConfidenceIntervalNetProfit
+     * @ return formatted string encoding 95% CI of net profit for each
+     *                     period from simulation
      */
     public String [] getSimulatedConfidenceIntervalNetProfit(){
         return this.simulatedConfidenceIntervalNetProfit;
@@ -474,6 +502,8 @@ public class BackEndCalculations {
 
     /**
      * Getter for simulatedProbabilityOfSuccess
+     * @return formatted string encoding probability of
+     *          success (net profit >0) for each time period
      */
     public String [] getSimulatedProbabilityOfSuccess(){
         return this.simulatedProbabilityOfSuccess;

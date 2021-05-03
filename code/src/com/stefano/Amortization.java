@@ -1,28 +1,31 @@
 /**
  * Class to compute amortization
- * schedule for financing
+ * schedule given financing parameters passed
+ * by user.
+ * @author Stefano Parravano
  */
+
 public class Amortization {
     private double loanAmount;
     private double loanDuration;
     private double numberLoanPaymentsPerYear;
     private double loanInterestRate;
     private double loanInterestRatePerPeriod;
-
     private double monthlyPayment;
     private double totalNumberOfPayments;
-
     private double [] principalPayments;
     private double [] interestPayments;
     private double [] loanBalances;
-
     private double [] cumulativePrincipalPayments;
     private double [] cumulativeInterestPayments;
     private double [] cumulativeTotalPayments; // cumulativePrincipalPayments + cumulative interestPayments
 
-
     /**
-     * Constructor.
+     * Constructor
+     * @param loanAmount the amount of financing required for the project
+     * @param loanDuration the duration in years of the financing agreement
+     * @param numberLoanPaymentsPerYear the number of loan payments required each year
+     * @param loanInterestRate the cost of financing reported as an annual interest rate
      */
     public Amortization(double loanAmount, double loanDuration,
                         double numberLoanPaymentsPerYear ,double loanInterestRate){
@@ -41,8 +44,9 @@ public class Amortization {
     }
 
     /**
-     * Helper Method to compute Monthly Payment Amount.
-     * This is given by the formula: A = P((r*(1+r)^n)/((1+r)^n)-1)
+     * Helper Method to compute the Monthly Payment Amount.
+     * The monthly payment amount is given by the formula:
+     * A = P((r*(1+r)^n)/((1+r)^n)-1)
      */
     private void calculateMonthlyPayment(){
         double numerator = this.loanInterestRatePerPeriod * Math.pow(1+this.loanInterestRatePerPeriod,this.totalNumberOfPayments);
@@ -52,7 +56,8 @@ public class Amortization {
     }
 
     /**
-     * This Method will compute the Amortization Schedule
+     * This Method will compute the full Amortization Schedule
+     * for the loan
      */
     public void calculateAmortizationSchedule(){
         this.calculateMonthlyPayment();
@@ -94,6 +99,7 @@ public class Amortization {
 
     /**
      * Getter method to retrieve all Principal Payments
+     * @return array of all principal payments for each time period
      */
     public double [] getPrincipalPayments(){
         return this.principalPayments;
@@ -101,6 +107,7 @@ public class Amortization {
 
     /**
      * Getter method to retrieve all Interest Payments
+     * @return array of all interest payments for each time period
      */
     public double [] getInterestPayments(){
         return this.interestPayments;
@@ -108,6 +115,7 @@ public class Amortization {
 
     /**
      * Getter method to retrieve Balances for all periods
+     * @return loan balances for all time periods
       */
     public double [] getLoanBalances(){
         return this.loanBalances;
@@ -116,6 +124,7 @@ public class Amortization {
     /**
      * Getter method to retrieve cumulative total
      * payments (principal + interest) for all periods
+     * @return cumulative out of pocket financing payments for each period
      */
     public double [] getCumulativeTotalPayments(){
         return this.cumulativeTotalPayments;

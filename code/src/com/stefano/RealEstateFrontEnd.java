@@ -1,15 +1,16 @@
+/**
+ * Class that defines the "input view" UI.
+ * Users will interact with this interface to
+ * provide our program with the desired inputs
+ * @author Stefano Parravano
+ */
+
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
-
-/**
- * Class that defines the "input view" UI.
- * Users will interact with this interface to
- * provide our program with the desired inputs
- */
 
 public class RealEstateFrontEnd extends JFrame {
 
@@ -75,20 +76,18 @@ public class RealEstateFrontEnd extends JFrame {
 
     /**
      * Helper method to clear all input cells
-     * and outputResults. Method does not take
+     * and output results. Method does not take
      * inputs and does not return anything
      */
     private void clearUserInputsAndOutput(){
         for (int i=0; i<jTextFields.length-1;i++){
             jTextFields[i].setText("");
         }
-
         // we want to delete results from previous runs first
         int numberOfRows = model.getRowCount();
         if (numberOfRows >0){
             for (int k=numberOfRows-1; k>=0; k--) model.removeRow(k);
         }
-
         int numberOfRowsSimulation = modelSimulation.getRowCount();
         if (numberOfRowsSimulation >0){
             for (int z=numberOfRowsSimulation-1; z>=0; z--) modelSimulation.removeRow(z);
@@ -111,7 +110,7 @@ public class RealEstateFrontEnd extends JFrame {
 
     /**
      * Helper method to collect all userInputs into
-     * an array. This array on inputs will get sent
+     * an array. This array of inputs will get sent
      * to the backend for processing. Method does not take
      * inputs and does not return anything
      *
@@ -125,7 +124,7 @@ public class RealEstateFrontEnd extends JFrame {
     /**
      * Helper method to add rows to our Results JTable.
      * It is not necessary to show results for all time periods.
-     * Only the time periods where the netProfit is >0 are relevant
+     * Only the time periods where the net profit is >0 are relevant
      * and as such we only display those to the user.
      */
     private void addDataToResultsTable(){
@@ -245,19 +244,20 @@ public class RealEstateFrontEnd extends JFrame {
 
     /**
      * Helper method to Create FrontEnd layout.
-     * The look of our GUI is defined in this method.
+     * The "look" of our GUI is defined in this method. This
+     * will get called in the constructor.
      */
     private void createFrontEndLayOut(){
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         initJLabels();
         initJTextFields();
         JTabbedPane tabs;JPanel resultsPanel;
         JPanel simulationResultsPanel;JPanel inputPanel;
 
+        // define colors and fonts for key text boxes and headers
         Color backgroundColor = new Color(174,224,255);
         Color lightBackgroundColor = new Color(211,211,211);
         Font font = new Font("TimesRoman", Font.BOLD,20);
-
+        //Our GUI will have three tabs. THese are defined here.
         tabs = new JTabbedPane(); resultsPanel = new JPanel();
         inputPanel = new JPanel(new GridBagLayout());
         simulationResultsPanel = new JPanel();
@@ -397,7 +397,6 @@ public class RealEstateFrontEnd extends JFrame {
         clearInputs.addActionListener(inputListener);
         loadSampleInputs.addActionListener(inputListener);
 
-
         // Set up of results and sim views
         JTable results = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(results);
@@ -423,7 +422,6 @@ public class RealEstateFrontEnd extends JFrame {
         tabs.add("Results",resultsPanel);
         tabs.add("Simulation Results",simulationResultsPanel);
         this.add(tabs);
-        this.setVisible (true);
     }
 
 }
