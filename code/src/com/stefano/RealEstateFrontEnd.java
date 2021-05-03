@@ -11,6 +11,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.text.NumberFormat;
+import java.io.*;
 
 public class RealEstateFrontEnd extends JFrame {
 
@@ -19,8 +20,10 @@ public class RealEstateFrontEnd extends JFrame {
     //JButtons that will be accessed in different methods
     // and classes
     private JButton runAnalysis = new JButton("Run Analysis!");
-    private JButton clearInputs = new JButton("Clear Inputs");
+    private JButton clearInputs = new JButton("Clear Inputs and Outputs");
     private JButton loadSampleInputs = new JButton("Load Sample Inputs");
+    private JButton writeResOutputToDisk = new JButton("Write Results To File");
+    private JButton writeSimOutputToDisk = new JButton("Write Simulation Results To File");
     //table model to display simualtion and output results
     private DefaultTableModel model = new DefaultTableModel();
     private DefaultTableModel modelSimulation = new DefaultTableModel();
@@ -30,6 +33,8 @@ public class RealEstateFrontEnd extends JFrame {
     private int numberOfParameters = 15; //number of numeric inputs required for analysis
     private String stringUserInputs [] = new String [numberOfParameters];
     private BackEndCalculations backEndCalculations = new BackEndCalculations();
+    private String resultsOutput = "";
+    private String simulationResultsOutput = "";
 
     /**
      * No arg constructor
@@ -70,6 +75,22 @@ public class RealEstateFrontEnd extends JFrame {
                 clearUserInputsAndOutput();
             } else if (e.getSource()==loadSampleInputs){
                 loadSampleInputs();
+            } else if (e.getSource()==writeResOutputToDisk){
+                if (resultsOutput.length()==0){
+                    JOptionPane.showMessageDialog(null,
+                            "No Results To write! Run anlaysis first."
+                            ," Write Results Error Alert",JOptionPane.ERROR_MESSAGE);
+                } else {
+                    writeOutput(resultsOutput);
+                }
+            } else if (e.getSource()==writeSimOutputToDisk){
+                if (simulationResultsOutput.length()==0){
+                    JOptionPane.showMessageDialog(null,
+                            "No Simulation Results to write! Run anlaysis first."
+                            ," Write Simulation Results Error Alert",JOptionPane.ERROR_MESSAGE);
+                } else {
+                    writeOutput(simulationResultsOutput);
+                }
             }
         }
     }
@@ -80,6 +101,8 @@ public class RealEstateFrontEnd extends JFrame {
      * inputs and does not return anything
      */
     private void clearUserInputsAndOutput(){
+        this.simulationResultsOutput="";
+        this.resultsOutput="";
         for (int i=0; i<jTextFields.length-1;i++){
             jTextFields[i].setText("");
         }
@@ -122,7 +145,8 @@ public class RealEstateFrontEnd extends JFrame {
     }
 
     /**
-     * Helper method to add rows to our Results JTable.
+     * Helper method to add rows to our Results JTable
+     * and assemple a string with the rusults of the main analysis.
      * It is not necessary to show results for all time periods.
      * Only the time periods where the net profit is >0 are relevant
      * and as such we only display those to the user.
@@ -138,6 +162,7 @@ public class RealEstateFrontEnd extends JFrame {
                 break;
             }
         }
+        if(stopIndex==0) stopIndex=1; //in case project is not profitable in first period we show that
         // we want to delete results from previous runs first
         int numberOfRows = model.getRowCount();
         if (numberOfRows >0){
@@ -151,7 +176,8 @@ public class RealEstateFrontEnd extends JFrame {
 
         NumberFormat formatter = NumberFormat.getCurrencyInstance();
 
-        for (int j =0; j<stopIndex; j++){
+        // add resuilts to our table view
+        for (int j=0; j<stopIndex; j++){
             this.model.addRow(new Object [] {
                     j+1,
                     formatter.format(projectedResalePrice),
@@ -161,11 +187,35 @@ public class RealEstateFrontEnd extends JFrame {
                     formatter.format(netProfit[j])
             });
         }
+        //store results to class member as a String
+        // we will use this to write the results to disk
+        String [] userInputs = this.backEndCalculations.getUserInputNames();
+        this.resultsOutput="";
+        this.resultsOutput +="Model Inputs\n" + "Project Name,"
+                + "\"" + jTextFields[0].getText()+"\"\n";
+        for (int w=0; w<userInputs.length;w++){
+            this.resultsOutput += userInputs[w] + ",";
+            this.resultsOutput += ("\"" + this.stringUserInputs[w] + "\"\n");
+        }
+        this.resultsOutput+="\n\n";
+        this.resultsOutput+="Time Period,Resale Price,Financing Balance,"
+        +"Cumulative Capital Invested,Net Sale,Net Profit\n";
+        for (int k=0; k<stopIndex;k++){
+            int valToPrint = k+1;
+            this.resultsOutput+=""+valToPrint
+                    +"," + "\"" + formatter.format(projectedResalePrice) + "\""
+                    +"," + "\"" + formatter.format(financingBalance[k]) + "\""
+                    +"," + "\"" + formatter.format(cumulativeCapex[k]) + "\""
+                    +"," + "\"" + formatter.format(netSale[k]) + "\""
+                    +"," + "\"" + formatter.format(netProfit[k]) + "\""
+                    +"\n";
+        }
     }
 
 
     /**
-     * Helper method to add rows to our SimulationsResults JTable.
+     * Helper method to add rows to our SimulationsResults JTable
+     * and assemple a string with the rusults of the simulation analysis.
      * It is not necessary to show results for all time periods.
      * Only the time periods where the Mean Net Profit is >0 are relevant
      * and as such we only display those to the user.
@@ -181,6 +231,7 @@ public class RealEstateFrontEnd extends JFrame {
                 break;
             }
         }
+        if(stopIndex==0) stopIndex=1; //in case project is not profitable in first period we show that
         // we want to delete results from previous runs first
         int numberOfRows = modelSimulation.getRowCount();
         if (numberOfRows >0){
@@ -202,6 +253,28 @@ public class RealEstateFrontEnd extends JFrame {
                     simulatedProbabilityProjectSuccess[j]
             });
         }
+        //store results to class member as a String
+        // we will use this to write the results to disk
+        String [] userInputs = this.backEndCalculations.getUserInputNames();
+        this.simulationResultsOutput="";
+        this.simulationResultsOutput +="Model Inputs\n"
+                + "Project Name," + "\"" + jTextFields[0].getText()+"\"\n";
+        for (int w=0; w<userInputs.length;w++){
+            this.simulationResultsOutput += userInputs[w] + ",";
+            this.simulationResultsOutput += ("\"" + this.stringUserInputs[w] + "\"\n");
+        }
+        this.simulationResultsOutput+="\n\n";
+        this.simulationResultsOutput+="Time Period,Mean Resale Price,Mean Net Profit,"
+                +"Net Profit 95% CI,Probability Of Success\n";
+        for (int k=0; k<stopIndex;k++){
+            int valToPrint = k+1;
+            this.simulationResultsOutput+=""+valToPrint
+                    +"," + "\"" + formatter.format(meanSimulatedResalePrice) + "\""
+                    +"," + "\"" + formatter.format(meanSimulatedNetProfit[k]) + "\""
+                    +"," + "\"" + simulatedCIIntervalNetProfit[k] + "\""
+                    +"," + "\"" + simulatedProbabilityProjectSuccess[k] + "\""
+                    +"\n";
+        }
     }
 
 
@@ -214,11 +287,11 @@ public class RealEstateFrontEnd extends JFrame {
         String [] jLabelsText = {"Project Name","Purchase Price ($)",
                 "Projected Resale Price ($)","Down Payment %",
                 "Other Costs At Closing ($)",
-                "Projected Capital Expenditure (PCE)", "PCE Down Payment %",
+                "Projected Capital Expenditure ($) (PCE)", "PCE Down Payment %",
                 "Loan Interest Rate %","Loan Duration in Years",
-                "# of Loan Payments per Year","Monthly Real-Estate Taxes",
-                "Monthly Insurance Costs","Other Monthly Expenses",
-                "Resale Price Mean","Resale Price Standard Deviation",
+                "# of Loan Payments per Year","Monthly Real-Estate Taxes ($)",
+                "Monthly Insurance Costs ($)","Other Monthly Expenses ($)",
+                "Resale Price Mean ($)","Resale Price Standard Deviation ($)",
                 "Number of Simulations","Assumed Probability Distribution",
                 "General Inputs","Financing Inputs",
                 "Simulation Inputs","Results will be visible once an analysis is Executed!",
@@ -240,6 +313,26 @@ public class RealEstateFrontEnd extends JFrame {
             jTextFields[i] = new JTextField("",15);
         }
         jTextFields[16].setText("Gaussian");
+    }
+
+    /**
+     * Helper method to write results of analysis to disk.
+     * @param outPut
+     */
+    private void writeOutput(String outPut){
+        JFileChooser chooser = new JFileChooser();
+        chooser.showOpenDialog (null);
+        String fileName = chooser.getSelectedFile().getAbsolutePath();
+        try {
+            PrintWriter outStream =  new PrintWriter (new File (fileName));
+            outStream.print (outPut);
+            outStream.close ();
+            JOptionPane.showMessageDialog (null, "Output was successfully written to disk!");
+        } catch (IOException errorFileWrite){
+            JOptionPane.showMessageDialog(null, errorFileWrite.getMessage()
+                    ,"Input Error Alert",JOptionPane.ERROR_MESSAGE);
+            errorFileWrite.printStackTrace();
+        }
     }
 
     /**
@@ -396,12 +489,18 @@ public class RealEstateFrontEnd extends JFrame {
         runAnalysis.addActionListener(inputListener);
         clearInputs.addActionListener(inputListener);
         loadSampleInputs.addActionListener(inputListener);
+        writeResOutputToDisk.addActionListener(inputListener);
+        writeSimOutputToDisk.addActionListener(inputListener);
 
         // Set up of results and sim views
         JTable results = new JTable(model);
         JScrollPane scrollPane = new JScrollPane(results);
         JTable simulationResults = new JTable(modelSimulation);
         JScrollPane scrollPaneSimulation = new JScrollPane(simulationResults);
+
+        Color limeGreen = new Color(50,205,50);
+        writeSimOutputToDisk.setBackground(limeGreen);
+        writeResOutputToDisk.setBackground(limeGreen);
         // set up the Results view
         model.addColumn("Time Period"); model.addColumn("Resale Price");
         model.addColumn("Financing Balance"); model.addColumn("Cumulative Capital Invested");
@@ -410,6 +509,7 @@ public class RealEstateFrontEnd extends JFrame {
         results.getColumnModel().getColumn(3).setPreferredWidth(140);
         resultsPanel.add(this.jLabels[20],BorderLayout.PAGE_START);
         resultsPanel.add(scrollPane,BorderLayout.CENTER);
+        resultsPanel.add(writeResOutputToDisk,BorderLayout.PAGE_END);
 
         // set up the simulationResults view
         modelSimulation.addColumn("Time Period"); modelSimulation.addColumn("Mean Resale Price");
@@ -417,6 +517,7 @@ public class RealEstateFrontEnd extends JFrame {
         modelSimulation.addColumn("Probability Of Success");
         simulationResultsPanel.add(this.jLabels[21],BorderLayout.PAGE_START);
         simulationResultsPanel.add(scrollPaneSimulation,BorderLayout.CENTER);
+        simulationResultsPanel.add(writeSimOutputToDisk,BorderLayout.PAGE_END);
 
         tabs.add("Inputs",inputPanel);
         tabs.add("Results",resultsPanel);

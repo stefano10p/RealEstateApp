@@ -46,16 +46,16 @@ public class BackEndCalculations {
     private  static final int MAX_NUMB_LOAN_PAYMENTS = 50;
     private  static final int MIN_NUMB_LOAN_PAYMENTS = 12;
     private  static final int MIN_NUMBER_SIMULATIONS = 100;
-    private  static final int MAX_NUMBER_SIMULATIONS = 1_000_000;
+    private  static final int MAX_NUMBER_SIMULATIONS = 35_000;
     private String inputErrors = "";
     private double userInputs [] = new double[15];
-    private String userInputsNames [] = {"Purchase Price","Projected Resale Price",
-            "Down Payment","Other Costs At Closing ($)",
-            "Projected Capital Expenditure","PCE Down Payment %",
-            "Loan Interest Rate","Loan Duration","# of Loan Payments",
-            "Monthly Real Estate Taxes","Monthly Insurance Costs",
-            "Other Monthly Expenses","Resale Price Mean",
-            "Resale Price Standard Deviation","Number of Simulations"};
+    private String userInputsNames [] = {"Purchase Price","Projected Resale Price ($)",
+            "Down Payment %","Other Costs At Closing ($)",
+            "Projected Capital Expenditure ($) (PCE)","PCE Down Payment %",
+            "Loan Interest Rate %","Loan Duration","# of Loan Payments per Year",
+            "Monthly Real Estate Taxes ($)","Monthly Insurance Costs ($)",
+            "Other Monthly Expenses ($)","Resale Price Mean ($)",
+            "Resale Price Standard Deviation ($)","Number of Simulations"};
 
 
     /**
@@ -311,9 +311,9 @@ public class BackEndCalculations {
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
                             + " is invalid\n";
                 } else {
-                    if (this.userInputs[index] + this.userInputs[0] > this.userInputs[1]){
+                    if (this.userInputs[index] + this.userInputs[0] + this.userInputs[3] > this.userInputs[1]){
                         this.inputErrors += this.userInputsNames[index] + " plus "
-                                + this.userInputsNames[0] + " should be < than: "
+                                + this.userInputsNames[0] + " plus " + this.userInputsNames[3]  + " should be < than: "
                                 + this.userInputsNames[1]+"\n";
                     }
                 }
@@ -328,11 +328,6 @@ public class BackEndCalculations {
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
                             + " is invalid\n";
-                } else if (this.userInputs[3] + this.userInputs[0] > this.userInputs[1]) {
-                    this.inputErrors += this.userInputsNames[3]
-                            + this.userInputsNames[0] + " should be < than: "
-                            + this.userInputsNames[1]+ " therefore this input is invalid\n";
-
                 } else if (this.userInputs[index]>100){
                     this.inputErrors += this.userInputsNames[index]
                             +" should be <=100%\n";
@@ -358,8 +353,8 @@ public class BackEndCalculations {
             } else if (index==8){
                 if (this.userInputs[index]>MAX_NUMB_LOAN_PAYMENTS || this.userInputs[index]<MIN_NUMB_LOAN_PAYMENTS){
                     this.inputErrors += this.userInputsNames[index]
-                            + " should be > " + MAX_LOAN_DURATION
-                            + " and < " + MIN_LOAN_DURATION + "\n";
+                            + " should be > " + MIN_NUMB_LOAN_PAYMENTS
+                            + " and < " + MAX_NUMB_LOAN_PAYMENTS + "\n";
                 } else if (this.userInputs[index] % 1 !=0){
                     this.inputErrors += this.userInputsNames[index]
                             + " should be an integer value. We only consider payment"
@@ -416,6 +411,14 @@ public class BackEndCalculations {
             }
         }
 
+    }
+
+    /**
+     * Getter for the names of the user inputs
+     * @return String UserInput names
+     */
+    public String [] getUserInputNames() {
+        return userInputsNames;
     }
 
     /**
