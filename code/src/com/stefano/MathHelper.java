@@ -54,6 +54,7 @@ public class MathHelper {
         double lowerVal = inputArrayClone[lowerBound];
         double upperVal = inputArrayClone[upperBound];
         NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setMaximumFractionDigits(0);
 
         String Result = "[" + formatter.format(lowerVal)
                 + ", " + formatter.format(upperVal) + "]";

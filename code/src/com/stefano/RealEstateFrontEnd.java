@@ -175,6 +175,7 @@ public class RealEstateFrontEnd extends JFrame {
         double [] netSale = this.backEndCalculations.getNetSale();
 
         NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setMaximumFractionDigits(0);
 
         // add resuilts to our table view
         for (int j=0; j<stopIndex; j++){
@@ -243,6 +244,7 @@ public class RealEstateFrontEnd extends JFrame {
         String [] simulatedProbabilityProjectSuccess = this.backEndCalculations.getSimulatedProbabilityOfSuccess();
 
         NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setMaximumFractionDigits(0);
 
         for (int j =0; j<stopIndex; j++){
             this.modelSimulation.addRow(new Object [] {
@@ -287,12 +289,12 @@ public class RealEstateFrontEnd extends JFrame {
         String [] jLabelsText = {"Project Name","Purchase Price ($)",
                 "Projected Resale Price ($)","Down Payment %",
                 "Other Costs At Closing ($)",
-                "Projected Capital Expenditure ($) (PCE)", "PCE Down Payment %",
+                "Projected CAPEX ($) (PCE)", "PCE Down Payment %",
                 "Loan Interest Rate %","Loan Duration in Years",
-                "# of Loan Payments per Year","Monthly Real-Estate Taxes ($)",
-                "Monthly Insurance Costs ($)","Other Monthly Expenses ($)",
-                "Resale Price Mean ($)","Resale Price Standard Deviation ($)",
-                "Number of Simulations","Assumed Probability Distribution",
+                "# of Loan Payments/year","Monthly Real-Estate Taxes ($)",
+                "Monthly Insurance ($)","Other Monthly Expenses ($)",
+                "Resale Price Mean ($)","Resale Price STD ($)",
+                "Number of Simulations","Probability Distribution",
                 "General Inputs","Financing Inputs",
                 "Simulation Inputs","Results will be visible once an analysis is Executed!",
                 "Results will be visible once an analysis is Executed!"
@@ -503,10 +505,13 @@ public class RealEstateFrontEnd extends JFrame {
         writeResOutputToDisk.setBackground(limeGreen);
         // set up the Results view
         model.addColumn("Time Period"); model.addColumn("Resale Price");
-        model.addColumn("Financing Balance"); model.addColumn("Cumulative Capital Invested");
+        model.addColumn("Financing Balance"); model.addColumn("Capital Invested");
         model.addColumn("Net Sale"); model.addColumn("Net Profit");
-        results.getColumnModel().getColumn(1).setPreferredWidth(100);
-        results.getColumnModel().getColumn(3).setPreferredWidth(140);
+        results.getColumnModel().getColumn(0).setPreferredWidth(20);
+        results.getColumnModel().getColumn(1).setPreferredWidth(60);
+        results.getColumnModel().getColumn(2).setPreferredWidth(75);
+        results.getColumnModel().getColumn(4).setPreferredWidth(60);
+        results.getColumnModel().getColumn(5).setPreferredWidth(60);
         resultsPanel.add(this.jLabels[20],BorderLayout.PAGE_START);
         resultsPanel.add(scrollPane,BorderLayout.CENTER);
         resultsPanel.add(writeResOutputToDisk,BorderLayout.PAGE_END);
@@ -515,6 +520,11 @@ public class RealEstateFrontEnd extends JFrame {
         modelSimulation.addColumn("Time Period"); modelSimulation.addColumn("Mean Resale Price");
         modelSimulation.addColumn("Mean Net Profit"); modelSimulation.addColumn("Net Profit 95% CI");
         modelSimulation.addColumn("Probability Of Success");
+        simulationResults.getColumnModel().getColumn(0).setPreferredWidth(5);
+        simulationResults.getColumnModel().getColumn(1).setPreferredWidth(60);
+        simulationResults.getColumnModel().getColumn(2).setPreferredWidth(55);
+        simulationResults.getColumnModel().getColumn(3).setPreferredWidth(90);
+        simulationResults.getColumnModel().getColumn(4).setPreferredWidth(50);
         simulationResultsPanel.add(this.jLabels[21],BorderLayout.PAGE_START);
         simulationResultsPanel.add(scrollPaneSimulation,BorderLayout.CENTER);
         simulationResultsPanel.add(writeSimOutputToDisk,BorderLayout.PAGE_END);
