@@ -24,6 +24,8 @@ public class RealEstateFrontEnd extends JFrame {
     private JButton loadSampleInputs = new JButton("Load Sample Inputs");
     private JButton writeResOutputToDisk = new JButton("Write Results To File");
     private JButton writeSimOutputToDisk = new JButton("Write Simulation Results To File");
+    private JButton help = new JButton("Help");
+
     //table model to display simualtion and output results
     private DefaultTableModel model = new DefaultTableModel();
     private DefaultTableModel modelSimulation = new DefaultTableModel();
@@ -35,6 +37,7 @@ public class RealEstateFrontEnd extends JFrame {
     private BackEndCalculations backEndCalculations = new BackEndCalculations();
     private String resultsOutput = "";
     private String simulationResultsOutput = "";
+    private String infoHelperText = "";
 
     /**
      * No arg constructor
@@ -91,6 +94,20 @@ public class RealEstateFrontEnd extends JFrame {
                 } else {
                     writeOutput(simulationResultsOutput);
                 }
+            } else if (e.getSource()==help){
+                // set up the information view
+                HelpPopUp helpPopUp = new HelpPopUp();
+                JPanel infoPanel = new JPanel();
+                infoPanel.setLayout(new BorderLayout());
+                JEditorPane infoText = new JEditorPane();
+                infoText.setContentType("text/html");
+                infoText.setText(infoHelperText);
+                infoText.setEditable(false);
+                JScrollPane infoTextScroller = new JScrollPane(infoText);
+                infoPanel.add(infoTextScroller);
+                helpPopUp.add(infoPanel);
+                helpPopUp.setVisible(true);
+                helpPopUp.setSize(400,400);
             }
         }
     }
@@ -345,6 +362,7 @@ public class RealEstateFrontEnd extends JFrame {
     private void createFrontEndLayOut(){
         initJLabels();
         initJTextFields();
+        generateInfoText();
         JTabbedPane tabs;JPanel resultsPanel;
         JPanel simulationResultsPanel;JPanel inputPanel;
 
@@ -478,6 +496,9 @@ public class RealEstateFrontEnd extends JFrame {
         c.gridx=0;c.gridy=9;c.gridwidth=1;
         inputPanel.add(runAnalysis,c);
 
+        c.gridx=0;c.gridy=10;c.gridwidth=1;
+        inputPanel.add(help,c);
+
         // add listeners on each button
         InputListener inputListener = new InputListener();
         runAnalysis.addActionListener(inputListener);
@@ -485,6 +506,8 @@ public class RealEstateFrontEnd extends JFrame {
         loadSampleInputs.addActionListener(inputListener);
         writeResOutputToDisk.addActionListener(inputListener);
         writeSimOutputToDisk.addActionListener(inputListener);
+
+        help.addActionListener(inputListener);
 
         // Set up of results and sim views
         JTable results = new JTable(model);
@@ -527,4 +550,35 @@ public class RealEstateFrontEnd extends JFrame {
         this.add(tabs);
     }
 
+    private void generateInfoText(){
+        this.infoHelperText+="<header><b>Below is an input dictionary providing insight on the meaning"
+                + " of all the inputs to the model.</b><br/><br/></header>";
+        String [] descriptions = {
+                "Name of Project.<br/>",
+                "Price in USD that was initially paid to acquire the asset.<br/>",
+                "Projected resale price in USD of asset.<br/>",
+                "Percent of purchase Price that was made available in cash at time of purchase."
+                        +"This is usually 5%.<br/>",
+                "Costs incurred at closing (legal fees, closing costs, etc.).<br/>",
+                "Projected Capital Expenditure required to perform renovations." +
+                        "Estimate this value conservatively.<br/>",
+                "Percent of CAPEX made available in cash at time of purchase.<br/>",
+                "Cost of borrowing funds required to complete project.<br/>",
+                "The duration period of the financing agreement. Usually this is 30 years or less.<br/>",
+                "The amount of loan payments made in a year. Typically this is 12 (once per month).<br/>",
+                "Yearly Real Estate taxes divided by 12.<br/>",
+                "Monthly costs of insurance premiums.<br/>",
+                "Other miscellaneous monthly expenses.<br/>",
+                "Desired mean value of simulated projected resale prices.<br/>",
+                "Desired Standard Deviation of simulated resale prices.<br/>",
+                "Number of simulations to be performed.<br/>"
+        };
+        for (int i=0; i<descriptions.length;i++){
+            this.infoHelperText +="<b>"+jLabels[i].getText()+"</b>"
+                    +": " + descriptions[i] + "\n";
+        }
+
+    }
+
 }
+
