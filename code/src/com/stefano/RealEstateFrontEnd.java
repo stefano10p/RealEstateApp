@@ -291,7 +291,7 @@ public class RealEstateFrontEnd extends JFrame {
                 "Other Costs At Closing ($)",
                 "Projected CAPEX ($) (PCE)", "PCE Down Payment %",
                 "Loan Interest Rate %","Loan Duration in Years",
-                "# of Loan Payments/year","Monthly Real-Estate Taxes ($)",
+                "# of Loan Payments Per Year","Monthly Real-Estate Taxes ($)",
                 "Monthly Insurance ($)","Other Monthly Expenses ($)",
                 "Resale Price Mean ($)","Resale Price STD ($)",
                 "Number of Simulations","Probability Distribution",
@@ -348,6 +348,13 @@ public class RealEstateFrontEnd extends JFrame {
         JTabbedPane tabs;JPanel resultsPanel;
         JPanel simulationResultsPanel;JPanel inputPanel;
 
+        JPanel generalInputs = new JPanel();generalInputs.setLayout(new GridLayout(4,4,8,0));
+        JPanel financingInputs = new JPanel();financingInputs.setLayout(new GridLayout(4,4,8,0));
+        JPanel simulationInputs = new JPanel();simulationInputs.setLayout(new GridLayout(2,4,8,0));
+
+        JLabel emptyLabel0 = new JLabel("");JLabel emptyLabel1 = new JLabel("");
+        JLabel emptyLabel2 = new JLabel("");JLabel emptyLabel3 = new JLabel("");
+        JTextField emptyTextField = new JTextField("");emptyTextField.setEditable(false);
         // define colors and fonts for key text boxes and headers
         Color backgroundColor = new Color(174,224,255);
         Color lightBackgroundColor = new Color(211,211,211);
@@ -366,124 +373,109 @@ public class RealEstateFrontEnd extends JFrame {
         this.jLabels[17].setFont(font);
         inputPanel.add(this.jLabels[17],c);
         //Project Name
-        c.gridx = 0; c.gridy = 1; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[0],c);
-        c.gridx = 2; c.gridy = 1; c.gridwidth = 1;
+        c.gridx = 0; c.gridy = 1; c.gridwidth = 1;
+        generalInputs.add(this.jLabels[0]);
         this.jTextFields[0].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[0],c);
+        generalInputs.add(this.jTextFields[0]);
+        generalInputs.add(emptyLabel0);
+        generalInputs.add(emptyLabel1);
+
         //Purchase Price and Projected Resale Price
-        c.gridx = 0; c.gridy = 2; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[1],c);
-        c.gridx = 2; c.gridy = 2; c.gridwidth = 1;
+        generalInputs.add(this.jLabels[1]);
         this.jTextFields[1].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[1],c);
-        c.gridx = 3; c.gridy = 2; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[2],c);
-        c.gridx = 5; c.gridy = 2; c.gridwidth = 1;
+        generalInputs.add(this.jTextFields[1]);
+        generalInputs.add(this.jLabels[2]);
         this.jTextFields[2].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[2],c);
+        generalInputs.add(this.jTextFields[2]);
         //Down Payment % and Other Closing Costs
-        c.gridx = 0; c.gridy = 3; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[3],c);
-        c.gridx = 2; c.gridy = 3; c.gridwidth = 1;
+        generalInputs.add(this.jLabels[3]);
         this.jTextFields[3].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[3],c);
-        c.gridx = 3; c.gridy = 3; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[4],c);
-        c.gridx = 5; c.gridy = 3; c.gridwidth = 2;
+        generalInputs.add(this.jTextFields[3]);
+        generalInputs.add(this.jLabels[4]);
         this.jTextFields[4].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[4],c);
+        generalInputs.add(this.jTextFields[4]);
         //PCE and PCE %
-        c.gridx = 0; c.gridy = 4; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[5],c);
-        c.gridx = 2; c.gridy = 4; c.gridwidth = 1;
+        generalInputs.add(this.jLabels[5]);
         this.jTextFields[5].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[5],c);
-        c.gridx = 3; c.gridy = 4; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[6],c);
-        c.gridx = 5; c.gridy = 4; c.gridwidth = 1;
+        generalInputs.add(this.jTextFields[5]);
+        generalInputs.add(this.jLabels[6]);
         this.jTextFields[6].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[6],c);
-        //Financing Inputs JLabel
-        c.gridx = 0; c.gridy = 6; c.gridwidth = 1;
+        generalInputs.add(this.jTextFields[6]);
+
+        c.gridx = 0; c.gridy = 2; c.gridwidth = 1;
+        inputPanel.add(generalInputs,c);
+
+        //Financing Inputs Header
+        c.gridx = 0; c.gridy = 3; c.gridwidth = 1;
         c.insets = new Insets(40,10,0,10);
         this.jLabels[18].setFont(font);
         inputPanel.add(this.jLabels[18],c);
         c.insets = new Insets(0,10,0,10);
         c.weightx=0;
         //Loan Interest Rate
-        c.gridx = 0; c.gridy = 7; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[7],c);
-        c.gridx = 2; c.gridy = 7; c.gridwidth = 1;
+        financingInputs.add(this.jLabels[7]);
         this.jTextFields[7].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[7],c);
+        financingInputs.add(this.jTextFields[7]);
+        financingInputs.add(emptyLabel2);
+        financingInputs.add(emptyLabel3);
         //Loan Duration and # of Loan Payments Per Year
-        c.gridx = 0; c.gridy = 8; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[8],c);
-        c.gridx = 2; c.gridy = 8; c.gridwidth = 1;
+        financingInputs.add(this.jLabels[8]);
         this.jTextFields[8].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[8],c);
-        c.gridx = 3; c.gridy = 8; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[9],c);
-        c.gridx = 5; c.gridy = 8; c.gridwidth = 1;
+        financingInputs.add(this.jTextFields[8]);
+        financingInputs.add(this.jLabels[9]);
         this.jTextFields[9].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[9],c);
+        financingInputs.add(this.jTextFields[9]);
         // Monthly Taxes and Insurance
-        c.gridx = 0; c.gridy = 9; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[10],c);
-        c.gridx = 2; c.gridy = 9; c.gridwidth = 1;
+        financingInputs.add(this.jLabels[10]);
         this.jTextFields[10].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[10],c);
-        c.gridx = 3; c.gridy = 9; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[11],c);
-        c.gridx = 5; c.gridy = 9; c.gridwidth = 1;
+        financingInputs.add(this.jTextFields[10]);
+        financingInputs.add(this.jLabels[11]);
         this.jTextFields[11].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[11],c);
+        financingInputs.add(this.jTextFields[11]);
         // Other Monthly Expenses
-        c.gridx = 0; c.gridy = 10; c.gridwidth = 2;
         inputPanel.add(this.jLabels[12],c);
-        c.gridx = 2; c.gridy = 10; c.gridwidth = 1;
+        financingInputs.add(this.jLabels[12]);
         this.jTextFields[12].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[12],c);
+        financingInputs.add(this.jTextFields[12]);
+
+        c.gridx = 0; c.gridy = 4; c.gridwidth = 1;
+        inputPanel.add(financingInputs,c);
+
+
         //Simulation Input Header Text
-        c.gridx = 0; c.gridy = 11; c.gridwidth = 1;
+        c.gridx = 0; c.gridy = 5; c.gridwidth = 1;
         c.insets = new Insets(40,10,0,10);
         this.jLabels[19].setFont(font);
         inputPanel.add(this.jLabels[19],c);
         c.insets = new Insets(0,10,0,10);
         //Resale Price Mean and Resale Price Standard Deviation
-        c.gridx = 0; c.gridy = 12; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[13],c);
-        c.gridx = 2; c.gridy = 12; c.gridwidth = 1;
+        simulationInputs.add(this.jLabels[13]);
         this.jTextFields[13].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[13],c);
-        c.gridx = 3; c.gridy = 12; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[14],c);
-        c.gridx = 5; c.gridy = 12; c.gridwidth = 1;
+        simulationInputs.add(this.jTextFields[13]);
+        simulationInputs.add(this.jLabels[14]);
         this.jTextFields[14].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[14],c);
+        simulationInputs.add(this.jTextFields[14]);
         //Number of Simulations Assumed Probability Distribution
-        c.gridx = 0; c.gridy = 13; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[15],c);
-        c.gridx = 2; c.gridy = 13; c.gridwidth = 1;
+        simulationInputs.add(this.jLabels[15]);
         this.jTextFields[15].setBackground(backgroundColor);
-        inputPanel.add(this.jTextFields[15],c);
-        c.gridx = 3; c.gridy = 13; c.gridwidth = 2;
-        inputPanel.add(this.jLabels[16],c);
-        c.gridx = 5; c.gridy = 13; c.gridwidth = 1;
+        simulationInputs.add(this.jTextFields[15]);
+        simulationInputs.add(this.jLabels[16]);
         this.jTextFields[16].setBackground(lightBackgroundColor);
         this.jTextFields[16].setEditable(false);
-        inputPanel.add(this.jTextFields[16],c);
+        simulationInputs.add(this.jTextFields[16]);
+
+        c.gridx = 0; c.gridy = 6; c.gridwidth = 1;
+        inputPanel.add(simulationInputs,c);
 
         // add buttons
         c.insets = new Insets(40,10,0,10);
-        c.gridx=0;c.gridy=14;c.gridwidth=6;
+        c.gridx=0;c.gridy=7;c.gridwidth=1;
         c.weightx=1.0;
         inputPanel.add(clearInputs,c);
         c.insets = new Insets(0,10,0,10);
-        c.gridx=0;c.gridy=15;c.gridwidth=6;
+        c.gridx=0;c.gridy=8;c.gridwidth=1;
         inputPanel.add(loadSampleInputs,c);
-        c.gridx=0;c.gridy=16;c.gridwidth=6;
+        c.gridx=0;c.gridy=9;c.gridwidth=1;
         inputPanel.add(runAnalysis,c);
 
         // add listeners on each button
