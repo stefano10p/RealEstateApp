@@ -323,7 +323,7 @@ public class RealEstateFrontEnd extends JFrame {
      */
     private void writeOutput(String outPut){
         JFileChooser chooser = new JFileChooser();
-        chooser.showOpenDialog (null);
+        chooser.showSaveDialog (null);
         String fileName = chooser.getSelectedFile().getAbsolutePath();
         try {
             PrintWriter outStream =  new PrintWriter (new File (fileName));
