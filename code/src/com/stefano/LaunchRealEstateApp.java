@@ -9,7 +9,7 @@ public class LaunchRealEstateApp {
         RealEstateFrontEnd launchApp = new RealEstateFrontEnd();
         launchApp.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         launchApp.setVisible(true);
-        launchApp.setSize(750,580);
+        launchApp.setSize(750,630);
         launchApp.setTitle("RealEstateProjectionsApp CopyRight 2021, Stefano Parravano");
 
         WelcomeView launchWelcomePage = new WelcomeView();
