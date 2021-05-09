@@ -1,18 +1,20 @@
 Hello David!
 
-I hope you like my project idea :).
-In this submission you will find a docx and an xlsm file.
-The docx file contains my written proposal.
-The xlsm file contains a working excel version of the application I intend to build.
+Here are some high-level notes describing the material I included in this submission.
 
-While time consuming, I found it extremely useful to construct an excel based version (or at least a partial version) of
-my intended work product. It has helped me better understand the scope of the application, and it has allowed me to capture
-all of the "functionality" that I must create before I've begun writing any code. I feel like I already have a pretty clear road
-map of what to do and how to do it. I hope that the excel version will prove useful to you as well, if you decide to look at it.
-You'll very quickly be able to get a strong visual sense of what I'm aiming for and hopefully it can help you judge the idea more quickly.
+All of my source code is included in the code directory. I compiled a jar file that you can
+use to launch the app. Alternatively please feel free to compile the: LaunchRealEstateApp.java
+file. When you do that, all other classes will be compiled and you will be able to launch the application
+from the command line: java LaunchRealEstateApp.
 
-As always, I look forward to your feedback.
+The ProjectReport.docx is my writeup describing my project in detail. There is also a pdf version if
+you prefer that type of rendering.
 
-best,
+The proposal material I submitted to you earlier in the semester is included in the proposal materials directory.
 
--Stefano 
+Note on length of code: This piece of software is doing a fair bit :) and given the amount and complexity of some
+of the computations and the number of calculations required there was a need to write a lot of code.
+I believe the amount of code reflects the complexity of the problem being solved and I wanted to bring
+that to your attention.
+
+-Stefano

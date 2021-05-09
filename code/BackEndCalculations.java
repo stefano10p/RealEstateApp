@@ -64,7 +64,7 @@ public class BackEndCalculations {
      * set inputs to a dats structure (the this.userInputs array)
      * we can use for analysis
      */
-    public void feedStringUserInputs( String [] stringUserInputs){
+    public void feedStringUserInputs(String [] stringUserInputs){
         inputErrors = ""; // we reset this to original state every time it is called
         int numberOfInputs = stringUserInputs.length;
         for  (int i=0; i<=numberOfInputs-1; i++){
@@ -126,7 +126,7 @@ public class BackEndCalculations {
 
     /**
      * This method will compute cumulative Taxes,Insurance and Other
-     * expenses for each time period adn store the results to the
+     * expenses for each time period and store the results to the
      * appropriate private members: cumulativeTaxPayments,cumulativeOtherPayments
      * cumulativeInsurancePayments.
      */
@@ -224,7 +224,6 @@ public class BackEndCalculations {
         }
 
     }
-
 
 
     /**
