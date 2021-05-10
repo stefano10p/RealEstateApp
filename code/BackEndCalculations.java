@@ -338,7 +338,10 @@ public class BackEndCalculations {
                     this.inputErrors += this.userInputsNames[index]
                             + " is unreasonably high. Please select a reasonable interest rate: "
                             + "< than " + MAX_INTEREST_RATE + "\n";
-                }
+                } else if (this.userInputs[index] == 0){
+					this.inputErrors += this.userInputsNames[index]
+                            + " should be > 0. Banks are still charging you to loan money.";
+				}
             } else if (index == 7){
                 if (this.userInputs[index] > MAX_LOAN_DURATION || this.userInputs[index] < MIN_LOAN_DURATION){
                     this.inputErrors += this.userInputsNames[index]
