@@ -49,19 +49,17 @@ class TaxCalculations{
             this.taxBracketThresholdsDelta[numberBrackets-1] = taxBracketThresholdsUpper[numberBrackets-1]
                     - taxBracketThresholdsLower[numberBrackets-1];
         }
-        System.out.println(Arrays.toString(taxBracketThresholdsDelta));
-        System.out.println(Arrays.toString(taxBracketThresholdsUpper));
-        System.out.println(Arrays.toString(taxBracketThresholdsLower));
         double totalTaxExposure = calculateTaxExposure(totalIncome);
-        System.out.println("Total Tax Exposure:" + totalTaxExposure);
         double regularIncomeTaxExposure = calculateTaxExposure(this.regularIncome);
-        System.out.println("Regular Income Tax Exposure:" + regularIncomeTaxExposure);
         return totalTaxExposure - regularIncomeTaxExposure;
 
     }
     
     // SHORT TERM EXPOSURE LOGIC
     private double calculateTaxExposure(double totalIncome){
+        if (totalIncome<=0){
+            return 0;
+        }
         if ( totalIncome>=taxBracketThresholdsLower[0] && totalIncome <= taxBracketThresholdsUpper[0] ){
             return totalIncome * taxBracketPercentages[0] ;
         } else if ( totalIncome>=taxBracketThresholdsLower[1] && totalIncome <= taxBracketThresholdsUpper[1]){
@@ -117,6 +115,9 @@ class TaxCalculations{
     //Long Term Capital Gains
 
     private double calculateLongTermTaxExposure(double investmentIncome){
+        if (investmentIncome<=0){
+            return 0;
+        }
         if (investmentIncome>=taxBracketLongTermThresholdsLower[0] && investmentIncome <= taxBracketLongTermThresholdsUpper[0] ){
             return investmentIncome * taxBracketLongTermPercentages[0] ;
         } else if (investmentIncome>=taxBracketLongTermThresholdsLower[1] && investmentIncome <= taxBracketLongTermThresholdsUpper[1]){
@@ -130,8 +131,7 @@ class TaxCalculations{
 
     private double individualLongTermBracketExposure(int bracket){
         if (bracket==0){
-            System.out.println("Here?");
-            return taxBracketLongTermThresholdsDelta[0] * taxBracketLongTermPercentages[0]; //TODO come back here
+            return taxBracketLongTermThresholdsDelta[0] * taxBracketLongTermPercentages[0];
         } else if (bracket==1){
             return taxBracketLongTermThresholdsDelta[0] * taxBracketLongTermPercentages[0]
                     + taxBracketLongTermThresholdsDelta[1] * taxBracketLongTermPercentages[1];
@@ -148,19 +148,8 @@ class TaxCalculations{
             this.taxBracketLongTermThresholdsDelta[numberBrackets-1] = taxBracketLongTermThresholdsUpper[numberBrackets-1]
                     - taxBracketLongTermThresholdsLower[numberBrackets-1];
         }
-        System.out.println(Arrays.toString(taxBracketLongTermThresholdsDelta));
-        System.out.println(Arrays.toString(taxBracketLongTermThresholdsUpper));
-        System.out.println(Arrays.toString(taxBracketLongTermThresholdsLower));
         double totalLongTermTaxExposure = calculateLongTermTaxExposure(investmentIncome);
         return totalLongTermTaxExposure;
-    }
-
-    public static void main(String [] args){
-        TaxCalculations test = new TaxCalculations(265_000);
-        double taxExposure = test.calculateShortTermInvestmentTaxExposure(350_000);
-        System.out.println("Short Term: " + taxExposure);
-        double longTermTest = test.calculateLongTermInvestmentTaxExposure(85_000);
-        System.out.println("Long Term: " + longTermTest);
     }
 
 }

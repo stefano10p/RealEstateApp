@@ -62,6 +62,23 @@ public class MathHelper {
     }
 
     /**
+     * Helper method to extract 95% CI from from formatted string result
+     * @param String95CI String array of 95 CI values
+     * @return 2D array with upper and lower bound numeric values of 95% CI
+     */
+    public static double [][] extractCINumeric(String [] String95CI){
+        double [][] result = new double [2][String95CI.length];
+        for (int i=0; i<String95CI.length; i++){
+            String strippedBracket = String95CI[i].replaceAll("[\\[\\]\\$,]","");
+            String [] tempSplit = strippedBracket.split("\\s+");
+            result[0][i] = Double.parseDouble(tempSplit[0]); //lower bound of 95%CI
+            result[1][i] = Double.parseDouble(tempSplit[1]); //upper bound of 95%CI
+        }
+        return result;
+
+    } 
+
+    /**
      * Method to compute probability of Project Success
      * for a given Time Period. A success is defined as an outcome
      * in which the net profit > 0. P(Success) = # of net profit >0 / total trials.

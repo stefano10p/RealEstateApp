@@ -8,9 +8,8 @@
  * @author Stefano Parravano
  */
 
-import java.text.NumberFormat;
-import java.util.Arrays;
 import java.util.Random;
+import java.text.NumberFormat;
 
 public class BackEndCalculations {
     private double projectedResalePrice;
@@ -30,12 +29,17 @@ public class BackEndCalculations {
     private double [] cumulativeInsurancePayments;
     private double [] cumulativeOtherPayments;
     private double [] loanBalances;
+    private double regularIncome;
     //Simulation members
     private double simulatedMeanResalePrice;
     private double [] simulatedMeanNetProfits; //array encoding the net Profit means --> one value for each time period
     private String [] simulatedConfidenceIntervalNetProfit; //array encoding the 95th CI for Simulated NetProfit Values
     private String [] simulatedProbabilityOfSuccess; //array encoding the probability of success for each time period
     private double [] cumulativeCapitalInvested; // this includes cumulative financing + cumu insurance
+    private double [] taxExposure; // tax exposure in results view
+    private double [] netProfitPostTax; // net profit after taxes in results view
+    private String [] taxExposure95CI; // tax exposure in Simulation view
+    private String [] netProfitPostTax95CI; // net profit after taxes in Simulation view
     // plus cum taxes plus cum Other + down payment amount + Capex
     private double [] netSale;
     private double [] netProfit;
@@ -48,14 +52,15 @@ public class BackEndCalculations {
     private  static final int MIN_NUMBER_SIMULATIONS = 100;
     private  static final int MAX_NUMBER_SIMULATIONS = 35_000;
     private String inputErrors = "";
-    private double userInputs [] = new double[15];
+    private double userInputs [] = new double[16];
     private String userInputsNames [] = {"Purchase Price","Projected Resale Price ($)",
             "Down Payment %","Other Costs At Closing ($)",
             "Projected Capital Expenditure ($) (PCE)","PCE Down Payment %",
             "Loan Interest Rate %","Loan Duration","# of Loan Payments per Year",
             "Monthly Real Estate Taxes ($)","Monthly Insurance Costs ($)",
             "Other Monthly Expenses ($)","Resale Price Mean ($)",
-            "Resale Price Standard Deviation ($)","Number of Simulations"};
+            "Resale Price Standard Deviation ($)","Number of Simulations",
+            "Income ($)"};
 
 
     /**
@@ -95,6 +100,7 @@ public class BackEndCalculations {
         this.resalePriceMean = this.userInputs[12];
         this.resalePriceSTD = this.userInputs[13];
         this.numberSimulations = this.userInputs[14];
+        this.regularIncome = this.userInputs[15];
         this.totalNumberOfPayments =(int)(this.numberLoanPaymentsPerYear * this.loanDuration);
         this.cumulativeTaxPayments = new double [this.totalNumberOfPayments];
         this.cumulativeOtherPayments = new double [this.totalNumberOfPayments];
@@ -121,6 +127,7 @@ public class BackEndCalculations {
         computeCumulativeExpenses();
         computeCumulativeCapitalInvested();
         computeNetSaleAndNetProfit();
+        computeTaxExposureAndNetProfitPostTax(); // fields shown in results tab
         performSimulation();
     }
 
@@ -180,6 +187,29 @@ public class BackEndCalculations {
     }
 
     /**
+     * This helper method will compute the tax exposure and netProfit
+     * post tax. The results will be saved to the appropriate private
+     * members: taxExposure and netProfitPostTax.
+     */
+
+    private void computeTaxExposureAndNetProfitPostTax(){
+        TaxCalculations taxCalculator = new TaxCalculations(this.regularIncome);
+        this.taxExposure = new double [this.netProfit.length];
+        this.netProfitPostTax = new double [this.netProfit.length];
+        for (int i=0; i<this.netProfit.length; i++){
+            // calculate tax exposure
+            if (i+1<=12){
+                //long term capital gains is after 12 months
+                this.taxExposure[i] = taxCalculator.calculateShortTermInvestmentTaxExposure(this.netProfit[i]);
+            } else {
+                this.taxExposure[i] = taxCalculator.calculateLongTermInvestmentTaxExposure(this.netProfit[i]);
+            }
+            this.netProfitPostTax[i] = this.netProfit[i] - this.taxExposure[i]; 
+        }
+
+    }
+
+    /**
      * This method will run our simulation and compute statistics of
      * interest and store them to the appropriate private members
      * (simulatedMeanNetProfits,simulatedConfidenceIntervalNetProfit,simulatedProbabilityOfSuccess).
@@ -223,6 +253,34 @@ public class BackEndCalculations {
             this.simulatedProbabilityOfSuccess[x] = MathHelper.computeProbabilityProjectSuccess(tempArray);
         }
 
+        // lets compute the tax exposure
+        this.taxExposure95CI = new String [this.netProfit.length];
+        this.netProfitPostTax95CI = new String [this.netProfit.length];
+
+        TaxCalculations taxCalculator = new TaxCalculations(this.regularIncome);
+        double [] [] netProfitNumericValues = MathHelper.extractCINumeric(simulatedConfidenceIntervalNetProfit);
+        double taxExposureLower=0; double taxExposureUpper=0;
+        NumberFormat formatter = NumberFormat.getCurrencyInstance();
+        formatter.setMaximumFractionDigits(0);
+        for (int i=0; i<netProfitNumericValues[0].length; i++){
+            double lowerBoundNetProfit = netProfitNumericValues[0][i];
+            double upperBoundNetProfit = netProfitNumericValues[1][i];
+            if (i+1<=12){
+                // add +1 because index starts at 0 and periods start at 1
+                //long term capital gains is after 12 months so here we compute short term
+                taxExposureLower = taxCalculator.calculateShortTermInvestmentTaxExposure(lowerBoundNetProfit);
+                taxExposureUpper = taxCalculator.calculateShortTermInvestmentTaxExposure(upperBoundNetProfit);
+            } else {
+                System.out.println("Lower net profit " + lowerBoundNetProfit+" " + "Upper Net: " + upperBoundNetProfit );
+                taxExposureLower = taxCalculator.calculateLongTermInvestmentTaxExposure(lowerBoundNetProfit);
+                taxExposureUpper = taxCalculator.calculateLongTermInvestmentTaxExposure(upperBoundNetProfit);
+                System.out.println("Lower Exposure " + taxExposureLower+" " + "Upper Exposure: " + taxExposureUpper);
+            }
+            this.taxExposure95CI[i] = "[" + formatter.format(taxExposureLower) + ", " + formatter.format(taxExposureUpper) + "]";
+            double netProfitPostTaxLower = lowerBoundNetProfit - taxExposureLower;
+            double netProfitPostTaxUpper = upperBoundNetProfit - taxExposureUpper;
+            this.netProfitPostTax95CI[i] = "[" + formatter.format(netProfitPostTaxLower) + ", " + formatter.format(netProfitPostTaxUpper) + "]";
+        }
     }
 
 
@@ -247,18 +305,18 @@ public class BackEndCalculations {
             } else {
                 this.inputErrors+="Error with input: " + this.userInputsNames[index]
                         + ", Cause of Error: Negative Numeric Value Provided\n";
-                this.userInputs[index] = this.sentinelValue;
+                this.userInputs[index] = sentinelValue;
             }
         } catch (Exception e){
             this.inputErrors += "Error with input: " + this.userInputsNames[index]
             + ", Cause of Error: Non-Numeric Input Provided\n";
-            this.userInputs[index] = this.sentinelValue;
+            this.userInputs[index] = sentinelValue;
         }
 
         if (passNumericTest){
             // now we check for conditions specific to each input
             if (index==1){
-                if (this.userInputs[0]==this.sentinelValue){
+                if (this.userInputs[0]==sentinelValue){
                     // checking Projected Resale Price input
                     // Purchase Price is not valid. We can't determine
                     // if Projected Resale Price is Valid. Analysis
@@ -282,11 +340,11 @@ public class BackEndCalculations {
             } else if(index==3){
                 // checking Other costs at closing input. Closing costs plus purchase price
                 // should be less than projected resale price
-                if (this.userInputs[0]==this.sentinelValue) {
+                if (this.userInputs[0]==sentinelValue) {
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
                             + " is invalid\n";
-                } else if (this.userInputs[1]==this.sentinelValue){
+                } else if (this.userInputs[1]==sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
                             + " is invalid\n";
@@ -301,11 +359,11 @@ public class BackEndCalculations {
             } else if (index==4){
                 // checking PCE input
                 // PCE + Purchase Price should be < resale price
-                if (this.userInputs[0]==this.sentinelValue) {
+                if (this.userInputs[0]==sentinelValue) {
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
                             + " is invalid\n";
-                } else if (this.userInputs[1]==this.sentinelValue){
+                } else if (this.userInputs[1]==sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
                             + " is invalid\n";
@@ -319,11 +377,11 @@ public class BackEndCalculations {
 
             } else if(index==5){
                 //checking PCE Down Payment %
-                if (this.userInputs[0]==this.sentinelValue) {
+                if (this.userInputs[0]==sentinelValue) {
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
                             + " is invalid\n";
-                } else if (this.userInputs[1]==this.sentinelValue){
+                } else if (this.userInputs[1]==sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
                             + " is invalid\n";
@@ -363,11 +421,11 @@ public class BackEndCalculations {
                             + " frequencies that increment by whole numbers\n";
                 }
             } else if (index==9 || index ==10 || index ==11){
-                if (this.userInputs[0]==this.sentinelValue){
+                if (this.userInputs[0]==sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
                             + " is invalid\n";
-                } else if (this.userInputs[1]==this.sentinelValue){
+                } else if (this.userInputs[1]==sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
                             + " is invalid\n";
@@ -379,15 +437,15 @@ public class BackEndCalculations {
                     }
                 }
             } else if (index==13){
-                if (this.userInputs[0]==this.sentinelValue){
+                if (this.userInputs[0]==sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[0]
                             + " is invalid\n";
-                } else if (this.userInputs[1]==this.sentinelValue){
+                } else if (this.userInputs[1]==sentinelValue){
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
                             + " is invalid\n";
-                } else if (this.userInputs[10]==this.sentinelValue) {
+                } else if (this.userInputs[10]==sentinelValue) {
                     this.inputErrors += "Unable to confirm validity of input: "
                             + this.userInputsNames[index] + ", Cause: " + this.userInputsNames[1]
                             + " is invalid\n";
@@ -512,6 +570,38 @@ public class BackEndCalculations {
      */
     public String [] getSimulatedProbabilityOfSuccess(){
         return this.simulatedProbabilityOfSuccess;
+    }
+
+    /**
+     * Getter for tax Exposure
+     * @return array with tax expsoure calculations
+     */
+    public double [] getTaxExposure(){
+        return this.taxExposure;
+    }
+
+    /**
+     * Getter for net Profit Post tax 
+     * @return array with net Profit Post Tax
+     */
+    public double [] getNetProfitPostTax(){
+        return this.netProfitPostTax;
+    }
+
+    /**
+     * Getter for net 95%CI simulated TaxExposure 
+     * @return array with net 95CI tax exposure
+     */
+    public String [] getTaxExposure95CI(){
+        return this.taxExposure95CI;
+    }
+
+    /**
+     * Getter for net 95%CI simulated NetProfit Post tax 
+     * @return array with net Profit Post Tax
+     */
+    public String [] getNetProfitPostTax95CI(){
+        return this.netProfitPostTax95CI;
     }
 
 }

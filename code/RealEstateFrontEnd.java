@@ -31,8 +31,8 @@ public class RealEstateFrontEnd extends JFrame {
     private DefaultTableModel modelSimulation = new DefaultTableModel();
     private final String [] sampleInputs = {"Demo","480,000","610,000",
     "5","12,000","65,000","50","5.181","30","12","200","150","140","610,000",
-    "10,500","25,000"};
-    private int numberOfParameters = 15; //number of numeric inputs required for analysis
+    "10,500","25,000","Gaussian","85,000"};
+    private int numberOfParameters = 16; //number of numeric inputs required for analysis
     private String stringUserInputs [] = new String [numberOfParameters];
     private BackEndCalculations backEndCalculations = new BackEndCalculations();
     private String resultsOutput = "";
@@ -62,9 +62,9 @@ public class RealEstateFrontEnd extends JFrame {
                     backEndCalculations.setAllInputs();
                     backEndCalculations.performAnalysis();
                     addDataToResultsTable();
-                    jLabels[20].setText("Analysis COMPLETE!");
+                    jLabels[22].setText("Analysis COMPLETE!");
                     addDataToSimulationResultsTable();
-                    jLabels[21].setText("Simulation Analysis COMPLETE!");
+                    jLabels[23].setText("Simulation Analysis COMPLETE!");
                     JOptionPane.showMessageDialog(null, "Analysis Complete!" +
                             " \nPlease visit the Results and Simulation Results tab to " +
                             "inspect the output.",
@@ -120,7 +120,7 @@ public class RealEstateFrontEnd extends JFrame {
     private void clearUserInputsAndOutput(){
         this.simulationResultsOutput="";
         this.resultsOutput="";
-        for (int i=0; i<jTextFields.length-1;i++){
+        for (int i=0; i<jTextFields.length;i++){
             jTextFields[i].setText("");
         }
         // we want to delete results from previous runs first
@@ -132,8 +132,8 @@ public class RealEstateFrontEnd extends JFrame {
         if (numberOfRowsSimulation >0){
             for (int z=numberOfRowsSimulation-1; z>=0; z--) modelSimulation.removeRow(z);
         }
-        this.jLabels[20].setText("Results will be visible once an analysis is Executed!");
-        this.jLabels[21].setText("Results will be visible once an analysis is Executed!");
+        this.jLabels[22].setText("Results will be visible once an analysis is Executed!");
+        this.jLabels[23].setText("Results will be visible once an analysis is Executed!");
     }
 
     /**
@@ -143,7 +143,7 @@ public class RealEstateFrontEnd extends JFrame {
      */
     private void loadSampleInputs(){
         clearUserInputsAndOutput();
-        for (int i=0; i<=numberOfParameters;i++){
+        for (int i=0; i<=numberOfParameters+1;i++){
             this.jTextFields[i].setText(this.sampleInputs[i]);
         }
     }
@@ -156,9 +156,13 @@ public class RealEstateFrontEnd extends JFrame {
      *
      */
     private void setStringUserInputs(){
-        for (int i=1; i<=numberOfParameters; i++){
-            this.stringUserInputs[i-1] = jTextFields[i].getText();
+        int counter=0;
+        for (int i=1; i<numberOfParameters; i++){
+            this.stringUserInputs[counter] = jTextFields[i].getText();
+            counter ++;
         }
+        // set inputs after gaussin distribution word input
+        this.stringUserInputs[counter] = jTextFields[17].getText();
     }
 
     /**
@@ -173,6 +177,8 @@ public class RealEstateFrontEnd extends JFrame {
         int numberOfPeriods = this.backEndCalculations.getTotalNumberOfPayments();
         int stopIndex = numberOfPeriods;
         double [] netProfit = this.backEndCalculations.getNetProfit();
+        double [] taxExposure = this.backEndCalculations.getTaxExposure();
+        double [] netProfitPostTax = this.backEndCalculations.getNetProfitPostTax();
         for (int i=0; i< numberOfPeriods;i++){
             if (netProfit[i]<0){
                 stopIndex = i;
@@ -202,7 +208,9 @@ public class RealEstateFrontEnd extends JFrame {
                     formatter.format(financingBalance[j]),
                     formatter.format(cumulativeCapex[j]),
                     formatter.format(netSale[j]),
-                    formatter.format(netProfit[j])
+                    formatter.format(netProfit[j]),
+                    formatter.format(taxExposure[j]),
+                    formatter.format(netProfitPostTax[j])
             });
         }
         //store results to class member as a String
@@ -226,6 +234,8 @@ public class RealEstateFrontEnd extends JFrame {
                     +"," + "\"" + formatter.format(cumulativeCapex[k]) + "\""
                     +"," + "\"" + formatter.format(netSale[k]) + "\""
                     +"," + "\"" + formatter.format(netProfit[k]) + "\""
+                    +"," + "\"" + formatter.format(taxExposure[k]) + "\""
+                    +"," + "\"" + formatter.format(netProfitPostTax[k]) + "\""
                     +"\n";
         }
     }
@@ -259,6 +269,8 @@ public class RealEstateFrontEnd extends JFrame {
         double meanSimulatedResalePrice = this.backEndCalculations.getSimulatedMeanResalePrice();
         String [] simulatedCIIntervalNetProfit = this.backEndCalculations.getSimulatedConfidenceIntervalNetProfit();
         String [] simulatedProbabilityProjectSuccess = this.backEndCalculations.getSimulatedProbabilityOfSuccess();
+        String [] simulatedCIIntervalTaxExposure = this.backEndCalculations.getTaxExposure95CI();
+        String [] simulatedCIIntervalNetProfitPostTaxes = this.backEndCalculations.getNetProfitPostTax95CI();
 
         NumberFormat formatter = NumberFormat.getCurrencyInstance();
         formatter.setMaximumFractionDigits(0);
@@ -269,7 +281,9 @@ public class RealEstateFrontEnd extends JFrame {
                     formatter.format(meanSimulatedResalePrice),
                     formatter.format(meanSimulatedNetProfit[j]),
                     simulatedCIIntervalNetProfit[j],
-                    simulatedProbabilityProjectSuccess[j]
+                    simulatedProbabilityProjectSuccess[j],
+                    simulatedCIIntervalTaxExposure[j],
+                    simulatedCIIntervalNetProfitPostTaxes[j]
             });
         }
         //store results to class member as a String
@@ -302,7 +316,7 @@ public class RealEstateFrontEnd extends JFrame {
      * be made visible in the front end view
      */
     private void initJLabels(){
-        jLabels = new JLabel[22];
+        jLabels = new JLabel[24];
         String [] jLabelsText = {"Project Name","Purchase Price ($)",
                 "Projected Resale Price ($)","Down Payment %",
                 "Other Costs At Closing ($)",
@@ -312,8 +326,11 @@ public class RealEstateFrontEnd extends JFrame {
                 "Monthly Insurance ($)","Other Monthly Expenses ($)",
                 "Resale Price Mean ($)","Resale Price STD ($)",
                 "Number of Simulations","Probability Distribution",
+                "Income",
                 "General Inputs","Financing Inputs",
-                "Simulation Inputs","Results will be visible once an analysis is Executed!",
+                "Simulation Inputs",
+                "Income Inputs",
+                "Results will be visible once an analysis is Executed!",
                 "Results will be visible once an analysis is Executed!"
         };
         for (int i=0; i<jLabelsText.length;i++){
@@ -327,7 +344,7 @@ public class RealEstateFrontEnd extends JFrame {
      * will be made visible in the front end view.
      */
     private void initJTextFields(){
-        jTextFields = new JTextField[17];
+        jTextFields = new JTextField[18];
         for (int i=0; i<jTextFields.length;i++){
             jTextFields[i] = new JTextField("",15);
         }
@@ -369,9 +386,11 @@ public class RealEstateFrontEnd extends JFrame {
         JPanel generalInputs = new JPanel();generalInputs.setLayout(new GridLayout(4,4,8,0));
         JPanel financingInputs = new JPanel();financingInputs.setLayout(new GridLayout(4,4,8,0));
         JPanel simulationInputs = new JPanel();simulationInputs.setLayout(new GridLayout(2,4,8,0));
+        JPanel incomeInputs = new JPanel();incomeInputs.setLayout(new GridLayout(1,4,8,0));
 
         JLabel emptyLabel0 = new JLabel("");JLabel emptyLabel1 = new JLabel("");
         JLabel emptyLabel2 = new JLabel("");JLabel emptyLabel3 = new JLabel("");
+        JLabel emptyLabel4 = new JLabel("");JLabel emptyLabel5 = new JLabel("");
         JTextField emptyTextField = new JTextField("");emptyTextField.setEditable(false);
         // define colors and fonts for key text boxes and headers
         Color backgroundColor = new Color(174,224,255);
@@ -388,8 +407,8 @@ public class RealEstateFrontEnd extends JFrame {
         c.fill = GridBagConstraints.HORIZONTAL;
         c.insets = new Insets(0,10,0,10);
         c.gridx = 0; c.gridy = 0; c.gridwidth = 1;
-        this.jLabels[17].setFont(font);
-        inputPanel.add(this.jLabels[17],c);
+        this.jLabels[18].setFont(font);
+        inputPanel.add(this.jLabels[18],c);
         //Project Name
         c.gridx = 0; c.gridy = 1; c.gridwidth = 1;
         generalInputs.add(this.jLabels[0]);
@@ -426,8 +445,8 @@ public class RealEstateFrontEnd extends JFrame {
         //Financing Inputs Header
         c.gridx = 0; c.gridy = 3; c.gridwidth = 1;
         c.insets = new Insets(40,10,0,10);
-        this.jLabels[18].setFont(font);
-        inputPanel.add(this.jLabels[18],c);
+        this.jLabels[19].setFont(font);
+        inputPanel.add(this.jLabels[19],c);
         c.insets = new Insets(0,10,0,10);
         c.weightx=0;
         //Loan Interest Rate
@@ -463,8 +482,8 @@ public class RealEstateFrontEnd extends JFrame {
         //Simulation Input Header Text
         c.gridx = 0; c.gridy = 5; c.gridwidth = 1;
         c.insets = new Insets(40,10,0,10);
-        this.jLabels[19].setFont(font);
-        inputPanel.add(this.jLabels[19],c);
+        this.jLabels[20].setFont(font);
+        inputPanel.add(this.jLabels[20],c);
         c.insets = new Insets(0,10,0,10);
         //Resale Price Mean and Resale Price Standard Deviation
         simulationInputs.add(this.jLabels[13]);
@@ -481,22 +500,38 @@ public class RealEstateFrontEnd extends JFrame {
         this.jTextFields[16].setBackground(lightBackgroundColor);
         this.jTextFields[16].setEditable(false);
         simulationInputs.add(this.jTextFields[16]);
-
         c.gridx = 0; c.gridy = 6; c.gridwidth = 1;
         inputPanel.add(simulationInputs,c);
 
+
+        //Income Input Header Text
+        c.gridx = 0; c.gridy = 7; c.gridwidth = 1;
+        c.insets = new Insets(40,10,0,10);
+        this.jLabels[21].setFont(font);
+        inputPanel.add(this.jLabels[21],c);
+        c.insets = new Insets(0,10,0,10);
+        //Regular Income
+        incomeInputs.add(this.jLabels[17]);
+        this.jTextFields[17].setBackground(backgroundColor);
+        incomeInputs.add(this.jTextFields[17]);
+        incomeInputs.add(emptyLabel4);
+        incomeInputs.add(emptyLabel5);
+
+        c.gridx = 0; c.gridy = 8; c.gridwidth = 1;
+        inputPanel.add(incomeInputs,c);
+
         // add buttons
         c.insets = new Insets(40,10,0,10);
-        c.gridx=0;c.gridy=7;c.gridwidth=1;
+        c.gridx=0;c.gridy=9;c.gridwidth=1;
         c.weightx=1.0;
         inputPanel.add(clearInputs,c);
         c.insets = new Insets(0,10,0,10);
-        c.gridx=0;c.gridy=8;c.gridwidth=1;
+        c.gridx=0;c.gridy=10;c.gridwidth=1;
         inputPanel.add(loadSampleInputs,c);
-        c.gridx=0;c.gridy=9;c.gridwidth=1;
+        c.gridx=0;c.gridy=11;c.gridwidth=1;
         inputPanel.add(runAnalysis,c);
 
-        c.gridx=0;c.gridy=10;c.gridwidth=1;
+        c.gridx=0;c.gridy=12;c.gridwidth=1;
         inputPanel.add(help,c);
 
         // add listeners on each button
@@ -522,12 +557,13 @@ public class RealEstateFrontEnd extends JFrame {
         model.addColumn("Time Period"); model.addColumn("Resale Price");
         model.addColumn("Financing Balance"); model.addColumn("Capital Invested");
         model.addColumn("Net Sale"); model.addColumn("Net Profit");
-        results.getColumnModel().getColumn(0).setPreferredWidth(20);
+        model.addColumn("Tax Exposure"); model.addColumn("Net Profit Post Tax");
+        results.getColumnModel().getColumn(0).setPreferredWidth(40);
         results.getColumnModel().getColumn(1).setPreferredWidth(60);
         results.getColumnModel().getColumn(2).setPreferredWidth(75);
         results.getColumnModel().getColumn(4).setPreferredWidth(60);
         results.getColumnModel().getColumn(5).setPreferredWidth(60);
-        resultsPanel.add(this.jLabels[20],BorderLayout.PAGE_START);
+        resultsPanel.add(this.jLabels[22],BorderLayout.PAGE_START);
         resultsPanel.add(scrollPane,BorderLayout.CENTER);
         resultsPanel.add(writeResOutputToDisk,BorderLayout.PAGE_END);
 
@@ -535,12 +571,14 @@ public class RealEstateFrontEnd extends JFrame {
         modelSimulation.addColumn("Time Period"); modelSimulation.addColumn("Mean Resale Price");
         modelSimulation.addColumn("Mean Net Profit"); modelSimulation.addColumn("Net Profit 95% CI");
         modelSimulation.addColumn("Probability Of Success");
-        simulationResults.getColumnModel().getColumn(0).setPreferredWidth(5);
+        modelSimulation.addColumn("Tax Exposure 95% CI");
+        modelSimulation.addColumn("Net Profit Post Tax 95% CI");
+        simulationResults.getColumnModel().getColumn(0).setPreferredWidth(15);
         simulationResults.getColumnModel().getColumn(1).setPreferredWidth(60);
         simulationResults.getColumnModel().getColumn(2).setPreferredWidth(55);
         simulationResults.getColumnModel().getColumn(3).setPreferredWidth(90);
         simulationResults.getColumnModel().getColumn(4).setPreferredWidth(50);
-        simulationResultsPanel.add(this.jLabels[21],BorderLayout.PAGE_START);
+        simulationResultsPanel.add(this.jLabels[23],BorderLayout.PAGE_START);
         simulationResultsPanel.add(scrollPaneSimulation,BorderLayout.CENTER);
         simulationResultsPanel.add(writeSimOutputToDisk,BorderLayout.PAGE_END);
 
@@ -571,7 +609,8 @@ public class RealEstateFrontEnd extends JFrame {
                 "Other miscellaneous monthly expenses.<br/>",
                 "Desired mean value of simulated projected resale prices.<br/>",
                 "Desired Standard Deviation of simulated resale prices.<br/>",
-                "Number of simulations to be performed.<br/>"
+                "Number of simulations to be performed.<br/>",
+                "Investors Regular Income.<br/>"
         };
         for (int i=0; i<descriptions.length;i++){
             this.infoHelperText +="<b>"+jLabels[i].getText()+"</b>"
