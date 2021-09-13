@@ -225,7 +225,7 @@ public class RealEstateFrontEnd extends JFrame {
         }
         this.resultsOutput+="\n\n";
         this.resultsOutput+="Time Period,Resale Price,Financing Balance,"
-        +"Cumulative Capital Invested,Net Sale,Net Profit\n";
+        +"Cumulative Capital Invested,Net Sale,Net Profit,Tax Exposure, Net Profit Post Tax\n";
         for (int k=0; k<stopIndex;k++){
             int valToPrint = k+1;
             this.resultsOutput+=""+valToPrint
@@ -298,7 +298,7 @@ public class RealEstateFrontEnd extends JFrame {
         }
         this.simulationResultsOutput+="\n\n";
         this.simulationResultsOutput+="Time Period,Mean Resale Price,Mean Net Profit,"
-                +"Net Profit 95% CI,Probability Of Success\n";
+                +"Net Profit 95% CI,Probability Of Success, Tax Exposure 95% CI, Net Profit Post Tax 95% CI\n";
         for (int k=0; k<stopIndex;k++){
             int valToPrint = k+1;
             this.simulationResultsOutput+=""+valToPrint
@@ -326,7 +326,7 @@ public class RealEstateFrontEnd extends JFrame {
                 "Monthly Insurance ($)","Other Monthly Expenses ($)",
                 "Resale Price Mean ($)","Resale Price STD ($)",
                 "Number of Simulations","Probability Distribution",
-                "Income",
+                "Investor's Ordinary Income",
                 "General Inputs","Financing Inputs",
                 "Simulation Inputs",
                 "Income Inputs",
