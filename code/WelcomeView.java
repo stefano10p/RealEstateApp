@@ -34,8 +34,8 @@ class WelcomeView extends JFrame{
                 +" from the personal research and experience of the author\n"
                 +" and are intended as educational material only. Although\n"
                 +" best efforts are made to ensure that all information is\n"
-                +" accurate up to date, occasionally unintended errors may\n"
-                +" occur.";
+                +" accurate and up to date, occasionally unintended errors\n"
+                +" may occur.";
         String copyRight = "RealEstateProjectionsApp 2021.05\n"
                 +"Copyright 2021, Stefano Parravano";
 

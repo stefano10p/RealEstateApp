@@ -610,7 +610,7 @@ public class RealEstateFrontEnd extends JFrame {
                 "Desired mean value of simulated projected resale prices.<br/>",
                 "Desired Standard Deviation of simulated resale prices.<br/>",
                 "Number of simulations to be performed.<br/>",
-                "Investors Regular Income.<br/>"
+                "Investor\'s Regular Income.<br/>"
         };
         for (int i=0; i<descriptions.length;i++){
             this.infoHelperText +="<b>"+jLabels[i].getText()+"</b>"
