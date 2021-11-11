@@ -610,6 +610,8 @@ public class RealEstateFrontEnd extends JFrame {
                 "Desired mean value of simulated projected resale prices.<br/>",
                 "Desired Standard Deviation of simulated resale prices.<br/>",
                 "Number of simulations to be performed.<br/>",
+                "Assumed Probability distribution of Resale Price treated as random variable" +
+                        " during simulations.\nOnly gaussian distributions are supported in current release.<br/>",
                 "Investor\'s Regular Income.<br/>"
         };
         for (int i=0; i<descriptions.length;i++){

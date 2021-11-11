@@ -270,6 +270,10 @@ public class BackEndCalculations {
                 //long term capital gains is after 12 months so here we compute short term
                 taxExposureLower = taxCalculator.calculateShortTermInvestmentTaxExposure(lowerBoundNetProfit);
                 taxExposureUpper = taxCalculator.calculateShortTermInvestmentTaxExposure(upperBoundNetProfit);
+                // if taxes are negative set to 0. Investor will take loss.
+                if (taxExposureLower<0) taxExposureLower=0;
+                if (taxExposureUpper<0) taxExposureUpper=0;
+
             } else {
                 System.out.println("Lower net profit " + lowerBoundNetProfit+" " + "Upper Net: " + upperBoundNetProfit );
                 taxExposureLower = taxCalculator.calculateLongTermInvestmentTaxExposure(lowerBoundNetProfit);
